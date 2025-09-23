@@ -5,3 +5,10 @@
 - i24_runlive.py - I24 code, needs work
 - midlevel_runlive.py - P24 code, 2 channels only, includes graph that doesnt work
 - p24_runlive.py - optional 4 channels, much cleaner
+
+## Setup 9/23
+- git clone https://github.com/spurgeah/ScienceMode4Python
+- conda create --name p24setupenv
+- conda activate p24setupenv
+- conda install pip
+- pip install -r src/science_mode_4/requirements.txt
