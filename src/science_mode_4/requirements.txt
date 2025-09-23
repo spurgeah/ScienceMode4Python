@@ -1,3 +1,8 @@
 pyserial
 pyusb
 libusb-package
+fastplotlib
+py-getch
+numpy
+matplotlib
+glfw
