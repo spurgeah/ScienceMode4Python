@@ -11,4 +11,6 @@
 - conda create --name p24setupenv
 - conda activate p24setupenv
 - conda install pip
+- cd ScienceMode4Python
 - pip install -r src/science_mode_4/requirements.txt
+- cd P24 control
