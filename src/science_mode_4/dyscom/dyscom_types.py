@@ -36,17 +36,17 @@ class DyscomSignalType(IntEnum):
     """Represent dyscom type for signal type"""
     UNUSED = 0
     UNKNOWN = 1
-    BI = 2
-    EMG_1 = 3
-    OP_VOLTAGE = 4
-    TEST_SIGNAL = 5
-    GROUND = 6
-    TEMPERATURE = 7
-    INTERNAL_SC = 8
-    EMG_2 = 9
-    TIME = 10
-    PUSHBUTTON = 11
-    BREATHING = 12
+    BI = 2 # bipolar signal
+    EMG_1 = 3 # electromyography signal 1
+    OP_VOLTAGE = 4 # operational amplifier voltage
+    TEST_SIGNAL = 5 # test signal
+    GROUND = 6 # ground
+    TEMPERATURE = 7 # temperature
+    INTERNAL_SC = 8 # internal temperature sensor
+    EMG_2 = 9 # electromyography signal 2
+    TIME = 10 # time
+    PUSHBUTTON = 11 # pushbutton
+    BREATHING = 12 # breathing 
 
 
 class DyscomFilterType(IntEnum):
