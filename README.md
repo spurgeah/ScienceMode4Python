@@ -17,3 +17,9 @@
 - python p24_runlive.py
 - $env:PYTHONPATH="Y:\Hasomed Code\HasomedSetup14\ScienceMode4Python"
 
+upon opening VSCode
+- conda activate p24setupenv
+- cd ScienceMode4Python
+- cd P24 control
+- $env:PYTHONPATH="Y:\Hasomed Code\HasomedSetup14\ScienceMode4Python"
+- python p24_runlive.py
