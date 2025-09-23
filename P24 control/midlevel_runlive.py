@@ -1,6 +1,7 @@
 # This script controls a Hasomed P24 stimulator using mid-level commands,
 # allows keyboard control over amplitude, frequency, and pulse width,
 # deleted plot of stim paraeters for cleaner controls
+# controls 2 channels always
 
 import asyncio  # For asynchronous programming (non-blocking loops)
 import threading  # To run keyboard listeners in parallel
