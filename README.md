@@ -14,3 +14,6 @@
 - cd ScienceMode4Python
 - pip install -r src/science_mode_4/requirements.txt
 - cd P24 control
+- python p24_runlive.py
+- $env:PYTHONPATH="Y:\Hasomed Code\HasomedSetup14\ScienceMode4Python"
+
