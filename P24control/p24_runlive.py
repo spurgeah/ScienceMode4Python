@@ -1,7 +1,7 @@
 # This script controls a Hasomed P24 stimulator using mid-level commands,
 # allows keyboard control over amplitude, frequency, and pulse width,
 # deleted plot of stim paraeters for cleaner controls
-# controls 2 channels always
+# controls up to 4 channels always
 
 import asyncio  # For asynchronous programming (non-blocking loops)
 import threading  # To run keyboard listeners in parallel
@@ -36,8 +36,8 @@ channel_defaults = {ch: channel_defaults[ch] for ch in range(1, num_channels+1)}
 
 # Step sizes for key changes
 delta_amp = 1 # mA
-delta_freq = 5
-delta_pw = 10
+delta_freq = 5 # Hz
+delta_pw = 10 # µs
 # ==============================
 
 
@@ -175,3 +175,4 @@ async def main():
 # Run the async main function
 if __name__ == "__main__":
     asyncio.run(main())
+
