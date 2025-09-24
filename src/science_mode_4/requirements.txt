@@ -7,3 +7,6 @@ numpy
 matplotlib
 glfw
 keyboard
+science_mode_4
+scipy
+asyncio
