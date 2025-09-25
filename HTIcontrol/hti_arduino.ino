@@ -1,8 +1,8 @@
 /*
 Arduino Sketch for IMU tilt detection and Carbonhand control.
 Outputs trigger messages via Serial to Python instead of relays.
-Author: [Your Name]
-Date: [Today]
+Author: Alisa Spurgeon
+Date: 9/25/25
 */
 
 #include <Wire.h>
@@ -16,17 +16,17 @@ const int resetButtonPin = 2;
 
 const int rightTiltThreshold = -13000; // Right tilt triggers FES
 const int leftTiltThreshold  = 3000;   // Left tilt triggers Carbonhand
-const unsigned long holdTime = 3000;
+const unsigned long holdTime = 3000; // Hold time in milliseconds
 
-bool fesState = false;
-bool chState = false;
-bool waitingForRightRelease = false;
+bool fesState = false; // FES state is OFF
+bool chState = false; // Carbonhand state is OFF
+bool waitingForRightRelease = false; // To prevent multiple toggles
 bool waitingForLeftRelease = false;
-unsigned long rightTiltStart = 0;
+unsigned long rightTiltStart = 0; // Time when right tilt started
 unsigned long leftTiltStart = 0;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(9600); // Start serial communication at 9600 baud
   Wire.begin();
   mpu.initialize();
 

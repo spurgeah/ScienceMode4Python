@@ -5,8 +5,8 @@ Integrated Python control script for:
 - Logging all events (IMU, Carbonhand, P24) to CSV
 - Allowing keyboard-based live tuning of stimulation parameters
 
-Author: [Your Name]
-Date: [Today]
+Author: Alisa Spurgeon
+Date: 9/25/25
 
 Requirements:
 - Python 3.8+
@@ -25,10 +25,9 @@ from datetime import datetime
 from science_mode_4 import DeviceP24, MidLevelChannelConfiguration, ChannelPoint, SerialPortConnection
 
 # ================== USER SETTINGS ==================
-ARDUINO_PORT = "COM4"  # Change to your Arduino Uno port
-ARDUINO_BAUD = 9600
-
-P24_PORT = "COM3"      # Change to your Hasomed P24 COM port
+P24_PORT = "COM3"      # P24 COM port - gets plugged in first!!
+ARDUINO_PORT = "COM4"  # Arduino Uno port
+ARDUINO_BAUD = 9600    # Baud rate for Arduino serial
 
 # Default stimulation parameters
 STIM_PARAMS = {
@@ -54,7 +53,7 @@ csv_filename = os.path.join(CSV_DIR, f"log_{datetime.now().strftime('%Y%m%d_%H%M
 # ===================================================
 
 # Global flags
-stop_program = False
+stop_program = False # To stop threads on exit
 
 # Logging utility
 def log_event(source, event, details=""):
@@ -66,7 +65,7 @@ def log_event(source, event, details=""):
 # P24 setup
 async def connect_p24():
     connection = SerialPortConnection(P24_PORT)
-    connection.open()
+    connection.open() 
     device = DeviceP24(connection)
     await device.initialize()
     mid_level = device.get_layer_mid_level()
