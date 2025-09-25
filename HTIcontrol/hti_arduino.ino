@@ -1,0 +1,114 @@
+/*
+Arduino Sketch for IMU tilt detection and Carbonhand control.
+Outputs trigger messages via Serial to Python instead of relays.
+Author: [Your Name]
+Date: [Today]
+*/
+
+#include <Wire.h>
+#include <MPU6050.h>
+MPU6050 mpu;
+
+// Pin definitions
+const int fesLedPin = 9;   // Green LED for FES state
+const int chLedPin = 10;   // Blue LED for Carbonhand state
+const int resetButtonPin = 2;
+
+const int rightTiltThreshold = -13000; // Right tilt triggers FES
+const int leftTiltThreshold  = 3000;   // Left tilt triggers Carbonhand
+const unsigned long holdTime = 3000;
+
+bool fesState = false;
+bool chState = false;
+bool waitingForRightRelease = false;
+bool waitingForLeftRelease = false;
+unsigned long rightTiltStart = 0;
+unsigned long leftTiltStart = 0;
+
+void setup() {
+  Serial.begin(9600);
+  Wire.begin();
+  mpu.initialize();
+
+  pinMode(fesLedPin, OUTPUT);
+  pinMode(chLedPin, OUTPUT);
+  pinMode(resetButtonPin, INPUT_PULLUP);
+
+  digitalWrite(fesLedPin, LOW);
+  digitalWrite(chLedPin, LOW);
+
+  if (!mpu.testConnection()) {
+    Serial.println("MPU6050 connection failed!");
+    while (1);
+  } else {
+    Serial.println("MPU6050 connected.");
+  }
+}
+
+void loop() {
+  // Reset button
+  if (digitalRead(resetButtonPin) == LOW) {
+    fesState = false;
+    chState = false;
+    waitingForRightRelease = false;
+    waitingForLeftRelease = false;
+    rightTiltStart = 0;
+    leftTiltStart = 0;
+    digitalWrite(fesLedPin, LOW);
+    digitalWrite(chLedPin, LOW);
+    Serial.println("RESET");
+    delay(500);
+  }
+
+  // Read IMU
+  int16_t ax, ay, az;
+  mpu.getAcceleration(&ax, &ay, &az);
+
+  // Send raw IMU values every loop
+  Serial.print("IMU,");
+  Serial.print(ax);
+  Serial.print(",");
+  Serial.print(ay);
+  Serial.print(",");
+  Serial.println(az);
+
+  if (ax == 0 && ay == 0 && az == 0) {
+    mpu.initialize();
+    delay(100);
+    return;
+  }
+
+  // --- FES Control (Tilt Right) ---
+  if (ay < rightTiltThreshold && !waitingForRightRelease) {
+    if (rightTiltStart == 0) rightTiltStart = millis();
+    if (millis() - rightTiltStart >= holdTime) {
+      fesState = !fesState;
+      digitalWrite(fesLedPin, fesState ? HIGH : LOW);
+      Serial.println(fesState ? "FES ON" : "FES OFF");
+      waitingForRightRelease = true;
+      rightTiltStart = 0;
+      delay(500);
+    }
+  } else if (ay > rightTiltThreshold + 2000) {
+    rightTiltStart = 0;
+    waitingForRightRelease = false;
+  }
+
+  // --- Carbonhand Control (Tilt Left) ---
+  if (ay > leftTiltThreshold && !waitingForLeftRelease) {
+    if (leftTiltStart == 0) leftTiltStart = millis();
+    if (millis() - leftTiltStart >= holdTime) {
+      chState = !chState;
+      digitalWrite(chLedPin, chState ? HIGH : LOW);
+      Serial.println(chState ? "CH ON" : "CH OFF");
+      waitingForLeftRelease = true;
+      leftTiltStart = 0;
+      delay(500);
+    }
+  } else if (ay < leftTiltThreshold - 2000) {
+    leftTiltStart = 0;
+    waitingForLeftRelease = false;
+  }
+
+  delay(100);
+}
