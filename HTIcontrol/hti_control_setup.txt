@@ -1,15 +1,17 @@
-I am controlling a soft robotic glove (Carbonhand, BioServo) for closing the hand, and using functional electrical stimulation to open the hand. The current setup is run through Arduino Uno, and uses an IMU for input, and the carbonhand, FES (TENS unit), and light activation are the outputs. The lights only turn on to show which device is activated at a given time. 
+I am combining and controlling a soft robotic glove (Carbonhand, BioServo) for closing the hand, and using functional electrical stimulation to open the hand for partial-paralysis rehabilitation. The current setup is run through Arduino Uno, and uses an IMU for input, and the carbonhand, FES (TENS unit), and light activation are the outputs. The lights only turn on to show which device is activated at a given time. 
 
-Everything is connected to an ELEGOO Uno R3 board, and all of the physical setup should remain the same, except the P24 is connected to the computer via a serial port connection, and will need to be activated and turned off with the code instead of the relay wired to the board(s). 
+Everything is connected to an ELEGOO Uno R3 board, and all of the physical setup should remain the same, except the P24 is connected to the computer via a serial port connection, and will need to be activated and turned off with the code instead of the relay wired to the board(s). The Uno R3 board will also be connected to the computer. 
 
 I need to interface the P24 FES stimulator into the system in place of the TENS unit for more precise parameter control. 
 
-The P24 FES stimulator is controlled via a github repository coded in python (https://github.com/spurgeah/ScienceMode4Python) 
-The attached pdf contains a bunch of Arduino .ino files used to run the program, and development notes of the system setup. 
+The P24 FES stimulator is controlled via a github repository coded in python (https://github.com/spurgeah/ScienceMode4Python)
+the file ScienceMode4Python/P24control/p24_runlive.py is used to run the P24 stimulation by itself.
+The attached pdf contains a bunch of Arduino .ino files used to run the program for the carbonhand+IMU+TENS system, and development notes of the system setup. 
 
-Write a python script that can be used to run the program from a desktop, that connects the P24 stimulator into the system instead of the TENS unit that can be added to the github repo. 
-
-Create an accompanying .ino file to be downloaded to the Uno R3 board to run the program. 
-
-
+Write a python script that can be used to run the program from a desktop, that connects the P24 stimulator into the system instead of the TENS unit that can be added to the github repo. I want most of the commands/control of the system to be read/editable in python, if possible. Include notes throughout the code in case they need to be read/edited by a future user.
 Keep the IMU input parameters the same (tilt/drop for a given time to activate)
+
+Create an accompanying .ino file for Arduino IDE to be downloaded to the Uno R3 board, that would be activated to run the program once started by the python code. Include notes throughout the code in case they need to be read/edited by a future user.
+
+finally, What else, if anything, would I need to change or add to the python library for arduino to communicate with python? 
+
