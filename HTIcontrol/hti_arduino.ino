@@ -15,8 +15,10 @@ const int chLedPin = 10;   // Blue LED for Carbonhand state
 const int resetButtonPin = 2;
 
 const int rightTiltThreshold = -13000; // Right tilt triggers FES
+  // -7000 to -6500 for S01
 const int leftTiltThreshold  = 3000;   // Left tilt triggers Carbonhand
-const unsigned long holdTime = 3000; // Hold time in milliseconds
+  // 700  for S01, can be increased to reduce false triggers (S01 naturally tilts left)
+const unsigned long holdTime = 2000; // Hold time in milliseconds
 
 bool fesState = false; // FES state is OFF
 bool chState = false; // Carbonhand state is OFF
