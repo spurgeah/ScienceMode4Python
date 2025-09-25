@@ -160,6 +160,9 @@ async def main():
                         try:
                             _, ax, ay, az = line.split(",")
                             log_event("Arduino", "IMU", f"AX={ax}, AY={ay}, AZ={az}")
+                            # output; 2025-09-25T11:05:32.123456,Arduino,IMU,AX=123 AY=-14567 AZ=876
+                            # writer.writerow([timestamp, "IMU", ax, ay, az])
+                            # output; Timestamp,Source,AX,AY,AZ
                         except ValueError:
                             log_event("Arduino", "IMU", f"Malformed: {line}")
                     if line == "FES ON":
