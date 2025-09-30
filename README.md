@@ -26,3 +26,11 @@ upon opening VSCode
 - `cd P24control`
 - `$env:PYTHONPATH="Y:\Hasomed Code\HasomedSetup14\ScienceMode4Python"`
 - `python p24_runlive.py`
+
+device manager from powershell - devmgmt.msc 
+
+
+## Issues to solve 9/30
+- csv doesnt log stim or CH events, need to log all events to CSV, including changing of stim parameters
+- P24 and carbonhand are not actually triggering, just the LEDs turning on/off
+
