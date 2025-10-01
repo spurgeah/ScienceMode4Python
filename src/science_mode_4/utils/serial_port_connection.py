@@ -28,9 +28,18 @@ class SerialPortConnection(Connection):
         return filtered_ports
 
 
-    def __init__(self, port: str):
-        self._ser = serial.Serial(timeout = 0)
-        self._ser.port = port
+    def __init__(self, port: str, baudrate: int = 3000000, **kwargs):
+        """Create a SerialPortConnection.
+
+        Args:
+            port: Serial port name (e.g., 'COM3' or '/dev/ttyUSB0').
+            baudrate: Baud rate to use (defaults to 3000000).
+            **kwargs: Additional keyword args forwarded to serial.Serial.
+        """
+        # Construct the underlying pyserial Serial object with provided
+        # parameters. Use explicit port and timeout; allow callers to pass
+        # other serial.Serial keyword args via **kwargs.
+        self._ser = serial.Serial(port=port, baudrate=baudrate, timeout=0, **kwargs)
 
 
     def open(self):

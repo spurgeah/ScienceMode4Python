@@ -29,6 +29,11 @@ from science_mode_4 import DeviceP24, MidLevelChannelConfiguration, ChannelPoint
 P24_PORT = "COM4"     # P24 COM port - gets plugged in first!!
 ARDUINO_PORT = "COM6" # Arduino Uno port
 ARDUINO_BAUD = 9600    # Baud rate for Arduino serial
+    # Arduino code should be set to 9600 baud
+    # baud rate is not critical as long as both sides match
+#P24_BAUD = 3000000  # Baud rate for P24 serial
+P24_BAUD = ARDUINO_BAUD  # Baud rate for P24 serial
+
 
 # Default stimulation parameters
 STIM_PARAMS = {
@@ -135,8 +140,18 @@ async def main():
     # Connect P24
     print(f"Connecting to P24 stimulator on {P24_PORT}...")
     #device, mid_level, connection = await connect_p24()
-    connection = SerialPortConnection(P24_PORT)
+    connection = SerialPortConnection(P24_PORT, baudrate=P24_BAUD)
     connection.open() 
+    # Startup log: show the actual baud the Serial object is using
+    try:
+        actual_baud = getattr(connection, "_ser", None)
+        if actual_baud is not None:
+            actual_baud = actual_baud.baudrate
+        else:
+            actual_baud = P24_BAUD
+    except Exception:
+        actual_baud = P24_BAUD
+    print(f"P24 connection opened on {P24_PORT} @ {actual_baud} baud")
     device = DeviceP24(connection)
     await device.initialize()
     mid_level = device.get_layer_mid_level()
@@ -155,7 +170,7 @@ async def main():
 
     try:
         while not stop_program:
-            #if arduino.in_waiting:
+            if arduino.in_waiting:
                 line = arduino.readline().decode().strip()
                 if line:
                     #print(f"[Arduino] {line}")
@@ -182,7 +197,7 @@ async def main():
                 elif line.startswith("CH"):
                     log_event("Carbonhand", "State", line)
 
-            #await asyncio.sleep(0.05)
+            await asyncio.sleep(0.05)
 
     except KeyboardInterrupt:
         print("Exiting program...")

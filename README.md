@@ -22,10 +22,10 @@
 
 upon opening VSCode
 - `conda activate p24setupenv`
-- `cd ScienceMode4Python`
 - `cd P24control`
 - `$env:PYTHONPATH="Y:\Hasomed Code\HasomedSetup14\ScienceMode4Python"`
 - `python p24_runlive.py`
+- `python hti_runlive.py`
 
 device manager from powershell - devmgmt.msc 
 
@@ -34,3 +34,18 @@ device manager from powershell - devmgmt.msc
 - csv doesnt log stim or CH events, need to log all events to CSV, including changing of stim parameters
 - P24 and carbonhand are not actually triggering, just the LEDs turning on/off
 
+## Fixed 10/1
+- Set P24 serial communication baud rate to 9600, same as the arduino
+- added baud rate input to utils > serial_port_connection.py 
+- Added Arduino libraries (in IDE); MPU6050 by ElectronicCats
+- COMS; 1=mouse 4=P24 6=Arduino
+- 
+
+## 10/2 
+- get CH right small glove
+- test baud rate setup as-is
+- bring in hat for testing
+order more magmets for decor
+re-arrange project wires
+re-arrange desk wires
+re-align poster
