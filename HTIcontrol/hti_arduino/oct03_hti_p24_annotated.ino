@@ -27,7 +27,7 @@ const unsigned long holdTime = 2000;   // How long the tilt must be held (in mil
 // State variables (remember whether FES / Carbonhand are ON or OFF)
 bool fesState = false; // start with FES OFF
 bool chState = false;  // start with Carbonhand OFF
-bool runMode = false; // Whether the main loop should run (true = run, false = paused)
+bool runMode = true; // Whether the main loop should run (true = run, false = paused)
 // Debounce / release flags to avoid toggling multiple times during one tilt
 bool waitingForRightRelease = false;
 bool waitingForLeftRelease = false;
@@ -77,15 +77,19 @@ void loop() {
     if (cmd == "RUN") {
       // enter active reporting/trigger mode
       runMode = true;  // a boolean you add to gate your IMU reporting
+      Serial.println("ACK RUN");
     } else if (cmd == "PAUSE") {
       runMode = false; // stop sending IMU data and responding to tilts
+      Serial.println("ACK PAUSE");
     } else if (cmd == "FES OFF") {
       fesState = false; // ensure FES indicator and any relay are OFF
       digitalWrite(fesLedPin, LOW);
+      Serial.println("ACK FES OFF");
     } else if (cmd == "CH OFF") {
       chState = false; // ensure CH indicator is OFF
       digitalWrite(chLedPin, LOW);
       digitalWrite(chRelayPin, HIGH); // set relay inactive (active-low)
+      Serial.println("ACK CH OFF");
     } 
 
     } // end of command processing

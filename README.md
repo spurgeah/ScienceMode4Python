@@ -42,11 +42,12 @@ device manager from powershell - devmgmt.msc
 - 
 
 ## Fixed 10/3
-CH activation by IMU works
-FES activation does not
-
 serial communication
 - fixed baud rate 
 - fixed arduino output byte conversion
 - added event logging
 - 
+
+CH activation by IMU works
+    -device starts out in 'locked' state when the program begins. needs to be in the 'unlocked' state when the LED is off
+FES activation does not turn on at all

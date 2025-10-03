@@ -89,9 +89,33 @@ async def stimulation_loop(mid_level, active_event):
     # stimulation_loop runs while the stim is active
     # keeps sending the config at ~50Hz
     # so the stim remains on and parameters can be adjusted live.
+    last_get = time.monotonic()
     while active_event.is_set():
         configs = build_stim_config()
-        await mid_level.update(configs)
+        # Log what we're sending so we can debug if the P24 doesn't stimulate
+        try:
+            log_event("P24", "Update", f"configs={configs}")
+        except Exception:
+            # In case configs aren't trivially printable
+            log_event("P24", "Update", "configs prepared")
+        try:
+            await mid_level.update(configs)
+        except Exception as e:
+            # If the P24 rejects the command or raises, log it
+            log_event("P24", "UpdateError", str(e))
+
+        # Periodically call get_current_data() (example shows ~1.5s) to keep the
+        # device's stimulation active and to fetch status. This prevents some
+        # devices from stopping stimulation after only a short while.
+        now = time.monotonic()
+        if now - last_get >= 1.5:
+            try:
+                _ = await mid_level.get_current_data()
+                log_event("P24", "get_current_data", "ok")
+            except Exception as e:
+                log_event("P24", "get_current_data_error", str(e))
+            last_get = now
+
         await asyncio.sleep(.02) # 50 Hz updates for smooth stim
 
 ##Keyboard listener functions
@@ -165,11 +189,11 @@ async def main():
     # creating the connection without it and set the underlying serial
     # object's baudrate if possible.
     try:
-        connection = SerialPortConnection(P24_PORT, baudrate=P24_BAUD)
+        p24_serial = SerialPortConnection(P24_PORT, baudrate=P24_BAUD)
     except TypeError:
-        connection = SerialPortConnection(P24_PORT)
+        p24_serial = SerialPortConnection(P24_PORT)
         try:
-            ser_obj = getattr(connection, "_ser", None) or getattr(connection, "ser", None)
+            ser_obj = getattr(p24_serial, "_ser", None) or getattr(p24_serial, "ser", None)
             if ser_obj is not None:
                 # try setting baudrate on underlying pyserial object
                 ser_obj.baudrate = P24_BAUD
@@ -184,10 +208,11 @@ async def main():
             # best-effort; if this fails, we'll still try to open the
             # connection and hope the device uses default baud.
             print(f"P24 baud fallback: failed to set baud on underlying serial object: {e}")
-    connection.open() 
+    p24_serial.open() 
+    
     # Startup log: show the actual baud the Serial object is using
     try:
-        actual_baud = getattr(connection, "_ser", None)
+        actual_baud = getattr(p24_serial, "_ser", None)
         if actual_baud is not None:
             actual_baud = actual_baud.baudrate
         else:
@@ -195,7 +220,7 @@ async def main():
     except Exception:
         actual_baud = P24_BAUD
     print(f"P24 connection opened on {P24_PORT} @ {actual_baud} baud")
-    device = DeviceP24(connection)
+    device = DeviceP24(p24_serial)
     await device.initialize()
     mid_level = device.get_layer_mid_level()
     await mid_level.init(do_stop_on_all_errors=True)
@@ -215,11 +240,13 @@ async def main():
         while not stop_program:
             if arduino.in_waiting: # checks if data is available from the serial port
                 raw = arduino.readline() # Read 1 line of bytes from Arduino
-                try:
-                    line = raw.decode().strip() #converts bytes to python string and removes whitespace 
-                except Exception:
-                    # fallback in case of unexpected encoding
-                    line = raw.decode('latin1').strip()
+
+                # If the read timed out, raw will be empty bytes; skip in that case
+                if not raw:
+                    continue
+
+                # Decode safely: prefer utf-8 but replace undecodable bytes rather than raising
+                line = raw.decode('utf-8', errors='replace').strip()
 
                 if not line:
                     continue
@@ -240,6 +267,13 @@ async def main():
                     if not fes_active.is_set():
                         fes_active.set()
                         asyncio.create_task(stimulation_loop(mid_level, fes_active))
+                        # Send one immediate update so stimulation starts right away
+                        try:
+                            configs = build_stim_config()
+                            await mid_level.update(configs)
+                            log_event("P24", "ImmediateStart", "update sent")
+                        except Exception as e:
+                            log_event("P24", "ImmediateStartError", str(e))
                         log_event("P24", "Stimulation STARTED", "trigger=arduino")
                 elif line == "FES OFF":
                     if fes_active.is_set():
@@ -263,24 +297,24 @@ async def main():
         fes_active.clear()
         await mid_level.stop()
 
-        # Tell Arduino to pause its active loop and turn off hardware so nothing
-        # continues running after Python exits. We send PAUSE, FES OFF, CH OFF.
-        try:
-            arduino.write(b"PAUSE\n")
-            time.sleep(0.02)
-            arduino.write(b"FES OFF\n")
-            time.sleep(0.02)
-            arduino.write(b"CH OFF\n")
-            time.sleep(0.02)
-            log_event("Arduino", "CMD", "PAUSE,FES OFF,CH OFF sent")
-        except Exception as e:
-            print(f"Warning: failed to send shutdown commands to Arduino: {e}")
+    # Tell Arduino to pause its active loop and turn off hardware so nothing
+    # continues running after Python exits. We send PAUSE, FES OFF, CH OFF.
+    try:
+        arduino.write(b"PAUSE\n")
+        time.sleep(0.02)
+        arduino.write(b"FES OFF\n")
+        time.sleep(0.02)
+        arduino.write(b"CH OFF\n")
+        time.sleep(0.02)
+        log_event("Arduino", "CMD", "PAUSE,FES OFF,CH OFF sent")
+    except Exception as e:
+        print(f"Warning: failed to send shutdown commands to Arduino: {e}")
 
 
 
-        connection.close()
-        arduino.close()
-        log_event("System", "Shutdown")
+    p24_serial.close()
+    arduino.close()
+    log_event("System", "Shutdown")
 
 # if __name__ == "__main__":
 #     asyncio.run(main())
