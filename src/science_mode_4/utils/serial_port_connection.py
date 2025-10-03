@@ -28,7 +28,7 @@ class SerialPortConnection(Connection):
         return filtered_ports
 
 
-    def __init__(self, port: str, baudrate: int = 3000000, **kwargs):
+    def __init__(self, port: str, **kwargs):
         """Create a SerialPortConnection.
 
         Args:
@@ -39,7 +39,7 @@ class SerialPortConnection(Connection):
         # Construct the underlying pyserial Serial object with provided
         # parameters. Use explicit port and timeout; allow callers to pass
         # other serial.Serial keyword args via **kwargs.
-        self._ser = serial.Serial(port=port, baudrate=baudrate, timeout=0, **kwargs)
+        self._ser = serial.Serial(port=port, timeout=0, **kwargs)
 
 
     def open(self):

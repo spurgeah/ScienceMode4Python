@@ -22,7 +22,7 @@
 
 upon opening VSCode
 - `conda activate p24setupenv`
-- `cd P24control`
+- `cd HTIcontrol`
 - `$env:PYTHONPATH="Y:\Hasomed Code\HasomedSetup14\ScienceMode4Python"`
 - `python p24_runlive.py`
 - `python hti_runlive.py`
@@ -41,11 +41,12 @@ device manager from powershell - devmgmt.msc
 - COMS; 1=mouse 4=P24 6=Arduino
 - 
 
-## 10/2 
-- get CH right small glove
-- test baud rate setup as-is
-- bring in hat for testing
-order more magmets for decor
-re-arrange project wires
-re-arrange desk wires
-re-align poster
+## Fixed 10/3
+CH activation by IMU works
+FES activation does not
+
+serial communication
+- fixed baud rate 
+- fixed arduino output byte conversion
+- added event logging
+- 
