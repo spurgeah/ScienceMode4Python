@@ -29,6 +29,7 @@ bool fesState = false; // start with FES OFF
 bool chState = false;  // start with Carbonhand OFF
 bool runMode = true; // Whether the main loop should run (true = run, false = paused)
 // Debounce / release flags to avoid toggling multiple times during one tilt
+bool deviceLocked = false; // Device lock state
 bool waitingForRightRelease = false;
 bool waitingForLeftRelease = false;
 // Variables to track when a tilt started (millis() gives time in ms since startup)
@@ -57,6 +58,7 @@ void setup() {
   // Ensure LEDs are off at startup
   digitalWrite(fesLedPin, LOW);
   digitalWrite(chLedPin, LOW);
+  deviceLocked = false; // Device starts unlocked
 
   // Check that the IMU is responding and inform the PC via Serial
   if (!mpu.testConnection()) {
@@ -65,6 +67,9 @@ void setup() {
   } else {
     Serial.println("MPU6050 connected."); // Tell PC everything is OK
   }
+
+  //Send initial state to Python
+  Serial.println("SYSTEM,STARTED,UNLOCKED");
 }
 
 // loop() runs over and over; this is the main program
@@ -74,24 +79,41 @@ void loop() {
   if (Serial.available()) {
     String cmd = Serial.readStringUntil('\n');
     cmd.trim();
+    
     if (cmd == "RUN") {
       // enter active reporting/trigger mode
       runMode = true;  // a boolean you add to gate your IMU reporting
       Serial.println("ACK RUN");
+      
     } else if (cmd == "PAUSE") {
       runMode = false; // stop sending IMU data and responding to tilts
       Serial.println("ACK PAUSE");
+      
     } else if (cmd == "FES OFF") {
       fesState = false; // ensure FES indicator and any relay are OFF
       digitalWrite(fesLedPin, LOW);
       Serial.println("ACK FES OFF");
+      
     } else if (cmd == "CH OFF") {
       chState = false; // ensure CH indicator is OFF
       digitalWrite(chLedPin, LOW);
       digitalWrite(chRelayPin, HIGH); // set relay inactive (active-low)
       Serial.println("ACK CH OFF");
-    } 
+    }
 
+    } else if (cmd == "LOCK") { // NEW: Lock device command
+      deviceLocked = true;
+      digitalWrite(fesLedPin, HIGH); // LED on when locked
+      Serial.println("DEVICE,LOCKED");
+    } else if (cmd == "UNLOCK") { // NEW: Unlock device command
+      deviceLocked = false;
+      digitalWrite(fesLedPin, LOW); // LED off when unlocked
+      Serial.println("DEVICE,UNLOCKED");
+    }
+
+
+
+    
     } // end of command processing
 
 
@@ -100,6 +122,7 @@ void loop() {
     // Clear states and flags so both systems are considered OFF
     fesState = false;
     chState = false;
+    deviceLocked = false; // Reset to unlocked state
     waitingForRightRelease = false;
     waitingForLeftRelease = false;
     rightTiltStart = 0;
@@ -108,13 +131,16 @@ void loop() {
     digitalWrite(fesLedPin, LOW);
     digitalWrite(chLedPin, LOW);
     // Inform the PC we reset
-    Serial.println("RESET");
+    Serial.println("SYSTEM,RESET,UNLOCKED");
     // Short delay so the button press doesn't cause repeated immediate actions
     delay(500);
   }
 
-  if (!runMode) { /* skip */ } // If not in run mode, skip the rest of the loop
+  if (!runMode) { //* skip */ } // If not in run mode, skip the rest of the loop
     // turns arduino 'off' when python not running
+        delay(10);
+    return;
+  }
     
 
   // Read acceleration values from the IMU (ax, ay, az)
@@ -137,7 +163,7 @@ void loop() {
   }
 
 
-  // --- FES Control (Tilt Right) ---
+  // --- FES Control (Tilt Right) --- ------------------------------------------------------------------
   // If the AY value is less than the right tilt threshold and we are not waiting for release
   if (ay < rightTiltThreshold && !waitingForRightRelease) {
     // Start timing how long the tilt has been held
@@ -147,7 +173,12 @@ void loop() {
       fesState = !fesState; // flip ON <-> OFF
       digitalWrite(fesLedPin, fesState ? HIGH : LOW); // Turn the FES LED on or off to show state
       // Inform the PC whether FES is now ON or OFF (Python will act on these messages)
-      Serial.println(fesState ? "FES ON" : "FES OFF");
+      // Serial.println(fesState ? "FES ON" : "FES OFF");
+      if (fesState) {
+        Serial.println("FES ON");
+      } else {
+        Serial.println("FES OFF");
+      }
       // Remember to wait for the tilt to be released before allowing another toggle
       waitingForRightRelease = true;
       rightTiltStart = 0;
@@ -156,10 +187,34 @@ void loop() {
   } else if (ay > rightTiltThreshold + 2000) {
     // If the IMU returns back toward center (release), clear the timers so we can detect next tilt
     rightTiltStart = 0;
+    waitingForRightRelease = false; -------------------------------------------
+  }
+
+// --- FES Control (Tilt Right) ---
+  // FIXED: Only trigger if device is unlocked
+  if (ay < rightTiltThreshold && !waitingForRightRelease && !deviceLocked) {
+    if (rightTiltStart == 0) rightTiltStart = millis();
+    if (millis() - rightTiltStart >= holdTime) {
+      fesState = !fesState;
+      digitalWrite(fesLedPin, fesState ? HIGH : LOW);
+      
+      // FIXED: Send proper FES commands that Python will recognize
+      if (fesState) {
+        Serial.println("FES ON");
+      } else {
+        Serial.println("FES OFF");
+      }
+      
+      waitingForRightRelease = true;
+      rightTiltStart = 0;
+      delay(500);
+    }
+  } else if (ay > rightTiltThreshold + 2000) {
+    rightTiltStart = 0;
     waitingForRightRelease = false;
   }
 
-  // --- Carbonhand Control (Tilt Left) ---
+  // --- Carbonhand Control (Tilt Left) -------------------------------------------------
   // Similar logic for left tilt
   if (ay > leftTiltThreshold && !waitingForLeftRelease) {
     if (leftTiltStart == 0) leftTiltStart = millis();
@@ -185,6 +240,39 @@ void loop() {
   }
 
   // Short delay to limit loop speed and serial traffic
+  delay(100);
+} ---------------------------------------------------------------------------
+  // --- Carbonhand Control (Tilt Left) ---
+  // FIXED: Only trigger if device is unlocked
+  if (ay > leftTiltThreshold && !waitingForLeftRelease && !deviceLocked) {
+    if (leftTiltStart == 0) leftTiltStart = millis();
+    if (millis() - leftTiltStart >= holdTime) {
+      chState = !chState;
+      digitalWrite(chLedPin, chState ? HIGH : LOW);
+      
+      // FIXED: Send proper CH commands
+      Serial.println(chState ? "CH ON" : "CH OFF");
+
+      if (chState) {
+        Serial.println("FES ON");
+      } else {
+        Serial.println("FES OFF");
+      }
+
+      // Pulse the relay
+      digitalWrite(chRelayPin, LOW);
+      delay(500);
+      digitalWrite(chRelayPin, HIGH);
+
+      waitingForLeftRelease = true;
+      leftTiltStart = 0;
+      delay(500);
+    }
+  } else if (ay < leftTiltThreshold - 2000) {
+    leftTiltStart = 0;
+    waitingForLeftRelease = false;
+  }
+
   delay(100);
 }
 // End of annotated Arduino sketch
