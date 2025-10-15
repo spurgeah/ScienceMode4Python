@@ -51,3 +51,55 @@ serial communication
 CH activation by IMU works
     -device starts out in 'locked' state when the program begins. needs to be in the 'unlocked' state when the LED is off
 FES activation does not turn on at all
+
+## Fixed 10/15
+- continued python > arduino serial communnication
+- now see exact bytes transmitted and received. repr(raw) output shows newline/carriage-return characters and any stray control bytes that previously hid parsing problems.
+- All serial traffic is also recorded to CSV via log_event("Arduino","TX"/"RX", ...)
+- SERIAL_DEBUG flag lets you enable/disable console inputs without changing logic, puts arduino logic on pause when python isn't running
+- Immediate mid_level.update() is sent when Python receives FES ON so stimulation starts immediately.
+- CSV header was expanded; log_event now also records current stim params.
+- added/fixed delays between serial communications and if statements
+
+## 10/16
+start with runing as-is
+
+
+
+
+ghost code python
+connect to p24
+connect to arudino
+read IMU
+
+
+
+ghost code ardino - loop
+
+print IMU readings
+
+declare FES on
+flip light (on/off)
+flip state/pin (boolean - high/low)
+send state message to python
+
+Declare CH on
+flip light
+flip state
+    pulse relay
+send state message to python
+
+recieve message from python
+    decode
+
+if 
+
+
+[SERIAL IN]  <- b'IMU,8640,316,13128\r\n'       .PY 117 arduino write to py, raw line, SUPRESSED
+[SERIAL IN]  <- decoded: IMU,8640,316,13128     .py 122 arduino write to py, decoded line
+[LOG] Arduino - RX IMU,8640,316,13128           .py 124 log arduino read/RX
+[Arduino] IMU,8640,316,13128                    .py 337
+[LOG] IMU - Position AX=8640 AY=316 AZ=13128    .py 345
+
+RX - logs for recieving data from a device
+TX - logs for sending commands
