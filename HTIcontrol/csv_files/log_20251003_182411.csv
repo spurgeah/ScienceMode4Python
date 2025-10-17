@@ -1,4 +1,0 @@
-Timestamp,Source,Event,Details
-2025-10-03T18:24:14.528243,Arduino,CMD,RUN sent
-2025-10-03T18:24:14.861536,Arduino,CMD,"PAUSE,FES OFF,CH OFF sent"
-2025-10-03T18:24:14.869146,System,Shutdown,

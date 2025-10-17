@@ -29,6 +29,101 @@ upon opening VSCode
 
 device manager from powershell - devmgmt.msc 
 
+## 10/16
+- start with runing as-is - added delay in .ino to  avoid overwhelming the serial output 
+- CH not turning on - emailed BioServo
+- switched CHRelayPin, now Low = off? Ryan's suggestion
+- removed deviceLocked from .ino
+- wayback machine files - hti_runlive2.py and oct17_old.ino
+
+- create ghost code
+
+
+
+
+
+
+
+
+ghost code python
+connect to p24
+connect to arudino
+read IMU
+
+
+
+## Ghost Code Arduino
+import libraries
+establish variables
+setup loop
+    set up serial connection
+    configure outputs
+    connect to IMU
+    permission to begin
+run loop
+    check for command from python
+    if reset button is pressed, turn off/ unlock everything
+    if not in runMode, skip the rest of the loop
+    Arduino read IMU values 
+    Arduino send serial IMU values to Py to print
+    delay for serial
+    if IMU values all = 0, re-initialize IMU
+- FES tilt control - RIGHT
+        checks tilt & time parameters (tiltStart, rightRelease)
+        flip FES state & light
+        Arduino send serial FES state to Py to print
+        reset time parameters
+        delay to prevent retriggering
+- CH tilt control - LEFT
+        checks tilt & time parameters (tiltStart, rightRelease)
+        flip CH state & light
+        Arduino send serial CH state to Py to print
+        pulse relay to activate CH
+        reset time parameters
+        delay to prevent retriggering
+
+## Ghost hti_runlive.py
+user settings - COM ports, stim parameters, etc
+functions
+    listen_for_input - press enter to stop
+    arduino_write - Send cmd (string) to Arduino and print raw+decoded representation
+    arduino_read_line - Read one line from Arduino, print raw bytes (repr) and decoded text
+    log_event - 
+    build_stim_config
+    stimulation_loop - async, updates stim parameters if manually changed
+    listen_for_XX - keyboard listener functions
+main
+    open CSV
+    connect to arduino
+    Py cmd to Arduino, UNLOCK and RUN
+    connect to P24
+    start keyboard listeners
+    RUN LOOP (while not stop_program)
+        Py read and print incoming command from Arduino
+        if line.startswith(XX), 
+            do something
+            log event
+    EXCEPT stop_program = true
+
+    Py cmd to Arduino - Pause, FES off, CH off, Lock
+    log shutdown
+
+    close P24 connection
+    close arduino connection
+    log shutdown complete
+
+
+
+[SERIAL IN]  <- b'IMU,8640,316,13128\r\n'       .PY 117 arduino write to py, raw line, SUPRESSED
+[SERIAL IN]  <- decoded: IMU,8640,316,13128     .py 122 arduino write to py, decoded line
+[LOG] Arduino - RX IMU,8640,316,13128           .py 124 log arduino read/RX
+[Arduino] IMU,8640,316,13128                    .py 337
+[LOG] IMU - Position AX=8640 AY=316 AZ=13128    .py 345
+
+RX - logs for recieving data from a device
+TX - logs for sending commands
+
+
 
 ## Issues to solve 9/30
 - csv doesnt log stim or CH events, need to log all events to CSV, including changing of stim parameters
@@ -60,46 +155,3 @@ FES activation does not turn on at all
 - Immediate mid_level.update() is sent when Python receives FES ON so stimulation starts immediately.
 - CSV header was expanded; log_event now also records current stim params.
 - added/fixed delays between serial communications and if statements
-
-## 10/16
-start with runing as-is
-
-
-
-
-ghost code python
-connect to p24
-connect to arudino
-read IMU
-
-
-
-ghost code ardino - loop
-
-print IMU readings
-
-declare FES on
-flip light (on/off)
-flip state/pin (boolean - high/low)
-send state message to python
-
-Declare CH on
-flip light
-flip state
-    pulse relay
-send state message to python
-
-recieve message from python
-    decode
-
-if 
-
-
-[SERIAL IN]  <- b'IMU,8640,316,13128\r\n'       .PY 117 arduino write to py, raw line, SUPRESSED
-[SERIAL IN]  <- decoded: IMU,8640,316,13128     .py 122 arduino write to py, decoded line
-[LOG] Arduino - RX IMU,8640,316,13128           .py 124 log arduino read/RX
-[Arduino] IMU,8640,316,13128                    .py 337
-[LOG] IMU - Position AX=8640 AY=316 AZ=13128    .py 345
-
-RX - logs for recieving data from a device
-TX - logs for sending commands
