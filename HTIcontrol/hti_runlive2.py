@@ -266,9 +266,11 @@ async def main():
                 line = raw.decode('utf-8', errors='replace').strip()
 
                 if not line:
+                    # No data this iteration; yield briefly and try again.
+                    await asyncio.sleep(0.05)
                     continue
 
-                print(f"[Arduino] {line}")
+                print(f"[Arduino > Python] {line}")
    
                 # IMU message: "IMU,ax,ay,az"
                 if line.startswith("IMU,"):
@@ -281,6 +283,7 @@ async def main():
 
                 # FES control messages from Arduino -> control P24 stimulation
                 if line == "FES ON":
+                # elif line.startswith("FES ON"): ----------------------------------
                     if not fes_active.is_set():
                         fes_active.set()
                         asyncio.create_task(stimulation_loop(mid_level, fes_active))
