@@ -1,7 +1,5 @@
 {
-    "arduino.additionalUrls": [
-        "C:\\Program Files\\Arduino CLI"
-    ],
-    "arduino.path": "C:\\Users\\spurgeah\\AppData\\Local\\Arduino",
-    "arduino.useArduinoCli": true
+    "arduino.path": "C:\\Users\\spurgeah\\AppData\\Local\\Programs\\Arduino IDE",
+    "arduino.useArduinoCli": true,
+    "arduino.openPDEFiletype": false
 }

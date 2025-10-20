@@ -41,10 +41,8 @@ device manager from powershell - devmgmt.msc
 - created ghost code for loop logis sanity check
  - interface VSCode with Arduino CLI to make my life easier
      - added to PATH -  C:\Program Files\Arduino CLI
-
-
-
-
+     - IDE location - C:\Users\spurgeah\AppData\Local\Programs\Arduino IDE 
+figure out why I cant upload code to arduino with vscode - error exit status 1
 
 
 
