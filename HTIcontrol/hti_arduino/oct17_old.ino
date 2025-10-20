@@ -4,6 +4,9 @@ This annotated version explains every line in plain English for a non-programmer
 
 Author: Annotated automatically
 Based on: sept30_hti_p24.ino
+
+Works with hti_runlive2.py Python script.
+
 */
 
 // Include the Wire library for I2C communication (used by the IMU)
@@ -124,7 +127,8 @@ void loop() {
       fesState = !fesState; // flip ON <-> OFF
       digitalWrite(fesLedPin, fesState ? HIGH : LOW); // Turn the FES LED on or off to show state
       // Inform the PC whether FES is now ON or OFF (Python will act on these messages)
-      Serial.println(fesState ? "FES ON" : "FES OFF");
+      Serial.print(fesState ? "FES ON" : "FES OFF");
+      Serial.println(" >> Python");
       // Remember to wait for the tilt to be released before allowing another toggle
       waitingForRightRelease = true;
       rightTiltStart = 0;
@@ -144,7 +148,8 @@ void loop() {
       chState = !chState; // Toggle Carbonhand state
       digitalWrite(chLedPin, chState ? HIGH : LOW); // Turn the CH LED on/off to show state
       // Let the PC know the Carbonhand state changed
-      Serial.println(chState ? "CH LOCK ON" : "CH LOCK OFF");
+      Serial.print(chState ? "CH LOCK ON" : "CH LOCK OFF");
+      Serial.println(" >> Python");
 
       // Pulse the relay to physically activate the Carbonhand (active-low relay)
       digitalWrite(chRelayPin, HIGH); // Turn relay on
@@ -185,4 +190,4 @@ void loop() {
     } // end of command processing
 
 }
-// End of annotated Arduino sketch
+// End of annotated Arduino sketch uino sketch

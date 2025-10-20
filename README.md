@@ -36,8 +36,11 @@ device manager from powershell - devmgmt.msc
 - removed deviceLocked from .ino
 - wayback machine files - hti_runlive2.py and oct17_old.ino
 
-- create ghost code
 
+## 10/20
+- created ghost code for loop logis sanity check
+ - interface VSCode with Arduino CLI to make my life easier
+     - added to PATH -  C:\Program Files\Arduino CLI
 
 
 

@@ -8,6 +8,12 @@ Integrated Python control script for:
 Author: Alisa Spurgeon
 Date: 9/25/25
 
+hti_runlive2.pyWorks with Arduino firmware in oct17_old.ino
+CH activates, deactivates via Arduino relay as before.
+Arduino > Python serial text messages still not coming through properly.
+lights, CH activation work fine.
+reset button and FES activation do not
+
 Requirements:
 - Python 3.8+
 - pyserial
