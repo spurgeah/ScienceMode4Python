@@ -50,7 +50,7 @@ void setup() {
   // Configure the relay pin as an output so we can pulse the relay
   pinMode(chRelayPin, OUTPUT);
   // Many relay modules are "active-low" (LOW = on), so keep it HIGH to keep the relay off now
-  digitalWrite(chRelayPin, HIGH); // Change to LOW to keep relay off?
+  digitalWrite(chRelayPin, LOW); // Change to LOW to keep relay off?
   // Configure the reset button pin with an internal pull-up so it reads HIGH normally and LOW when pressed
   pinMode(resetButtonPin, INPUT_PULLUP);
 
@@ -69,27 +69,6 @@ void setup() {
 
 // loop() runs over and over; this is the main program
 void loop() {
-
-    // lets arduino read commands from python over serial
-  if (Serial.available()) {
-    String cmd = Serial.readStringUntil('\n');
-    cmd.trim();
-    if (cmd == "RUN") {
-      // enter active reporting/trigger mode
-      runMode = true;  // a boolean you add to gate your IMU reporting
-    } else if (cmd == "PAUSE") {
-      runMode = false; // stop sending IMU data and responding to tilts
-    } else if (cmd == "FES OFF") {
-      fesState = false; // ensure FES indicator and any relay are OFF
-      digitalWrite(fesLedPin, LOW);
-    } else if (cmd == "CH OFF") {
-      chState = false; // ensure CH indicator is OFF
-      digitalWrite(chLedPin, LOW);
-      digitalWrite(chRelayPin, HIGH); // set relay inactive (active-low)
-    } 
-
-    } // end of command processing
-
 
   // If the reset button is pressed (reads LOW because of INPUT_PULLUP)
   if (digitalRead(resetButtonPin) == LOW) {
@@ -165,12 +144,12 @@ void loop() {
       chState = !chState; // Toggle Carbonhand state
       digitalWrite(chLedPin, chState ? HIGH : LOW); // Turn the CH LED on/off to show state
       // Let the PC know the Carbonhand state changed
-      Serial.println(chState ? "CH ON" : "CH OFF");
+      Serial.println(chState ? "CH LOCK ON" : "CH LOCK OFF");
 
       // Pulse the relay to physically activate the Carbonhand (active-low relay)
-      digitalWrite(chRelayPin, LOW); // Turn relay on
+      digitalWrite(chRelayPin, HIGH); // Turn relay on
       delay(500);                    // Hold the relay on for 500 ms
-      digitalWrite(chRelayPin, HIGH); // Turn relay off
+      digitalWrite(chRelayPin, LOW); // Turn relay off
 
       // Block further toggles until the tilt is released
       waitingForLeftRelease = true;
@@ -184,5 +163,26 @@ void loop() {
 
   // Short delay to limit loop speed and serial traffic
   delay(100);
+
+      // lets arduino read commands from python over serial
+  if (Serial.available()) {
+    String cmd = Serial.readStringUntil('\n');
+    cmd.trim();
+    if (cmd == "RUN") {
+      // enter active reporting/trigger mode
+      runMode = true;  // a boolean you add to gate your IMU reporting
+    } else if (cmd == "PAUSE") {
+      runMode = false; // stop sending IMU data and responding to tilts
+    } else if (cmd == "FES OFF") {
+      fesState = false; // ensure FES indicator and any relay are OFF
+      digitalWrite(fesLedPin, LOW);
+    } else if (cmd == "CH LOCK OFF") {
+      chState = false; // ensure CH indicator is OFF
+      digitalWrite(chLedPin, LOW);
+      digitalWrite(chRelayPin, LOW); // set relay inactive (active-low)
+    } 
+
+    } // end of command processing
+
 }
 // End of annotated Arduino sketch

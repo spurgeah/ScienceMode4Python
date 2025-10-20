@@ -249,9 +249,11 @@ async def main():
     threading.Thread(target=listen_for_amp, daemon=True).start()
     threading.Thread(target=listen_for_freq, daemon=True).start()
     threading.Thread(target=listen_for_pw, daemon=True).start()
+    print("Keyboard listening threads started.")
 
     # FES active flag
     fes_active = asyncio.Event()
+    print("FES event flag created.")
 
     try:
         while not stop_program:
@@ -282,7 +284,7 @@ async def main():
                         log_event("Arduino", "Malformed IMU", line)
 
                 # FES control messages from Arduino -> control P24 stimulation
-                if line == "FES ON":
+                elif line == "FES ON":
                 # elif line.startswith("FES ON"): ----------------------------------
                     if not fes_active.is_set():
                         fes_active.set()
@@ -302,14 +304,18 @@ async def main():
                         log_event("P24", "Stimulation STOPPED", "trigger=arduino")
 
                 # Carbonhand messages (Arduino pulses the relay directly) - just log state
-                elif line.startswith("CH") or line in ("CH ON", "CH OFF"):
+                elif line.startswith("CH") or line in ("CH LOCK ON", "CH LOCK OFF"):
                     log_event("Carbonhand", "State", line)
 
                 else:
                     # Generic messages
                     log_event("Arduino", "Message", line)
 # -------------------------------------------------------------
-                    
+            else:
+                print(f"[Arduino > Python] NO commands")
+                # await asyncio.sleep(2.0)  # No data; wait longer before checking again
+                continue
+
             await asyncio.sleep(0.05)
 
     except KeyboardInterrupt:
@@ -325,7 +331,7 @@ async def main():
         time.sleep(0.02)
         arduino.write(b"FES OFF\n")
         time.sleep(0.02)
-        arduino.write(b"CH OFF\n")
+        arduino.write(b"CH LOCK OFF\n")
         time.sleep(0.02)
         log_event("Arduino", "CMD", "PAUSE,FES OFF,CH OFF sent")
     except Exception as e:
@@ -335,12 +341,6 @@ async def main():
     p24_serial.close()
     arduino.close()
     log_event("System", "Shutdown", "COMPLETE")
-
-
-
-    p24_serial.close()
-    arduino.close()
-    log_event("System", "Shutdown")
 
 # if __name__ == "__main__":
 #     asyncio.run(main())
