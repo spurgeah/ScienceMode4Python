@@ -6,7 +6,18 @@ Integrated Python control script for:
 - Allowing keyboard-based live tuning of stimulation parameters
 
 Author: Alisa Spurgeon
-Date: 9/25/25
+Date Began: 10/22/25
+Version: 0.3
+
+Achieved so far:
+- hti_runlive3.py Works with Arduino firmware in hti_arduino2.ino
+- CH activates, deactivates via Arduino relay as before.
+- Lights, CH activation work fine.
+- FES activation only works the first time Arduino sends FES ON. After that,
+
+Issues: 
+- Arduino > Python serial text messages still not coming through properly AFTER IMU lines
+- Reset button does not work.
 
 Requirements:
 - Python 3.8+
@@ -22,7 +33,6 @@ import os
 import threading
 import keyboard
 import time
-import serial 
 from datetime import datetime
 from science_mode_4 import DeviceP24, MidLevelChannelConfiguration, ChannelPoint, SerialPortConnection
 
@@ -67,16 +77,10 @@ def listen_for_input():
     input("Press Enter to stop...\n")  # Waits for Enter key
     stop_program = True
 
-# Enable/disable verbose serial logging
-SERIAL_DEBUG = True
-    # Set to True to print all serial data sent/received
-    # set to False to quiet console output, supress serial logging
-
 # Serial communication helper functions
 def arduino_write(arduino_ser, cmd: str):
     """Send cmd (string) to Arduino and print raw+decoded representation.
      sends a newline-terminated ASCII command, prints the raw bytes and the human text, and logs the TX to CSV.
-     If SERIAL_DEBUG is False, only errors are printed.
      """
     try:
         if not cmd.endswith("\n"):
@@ -85,9 +89,8 @@ def arduino_write(arduino_ser, cmd: str):
             cmd_to_send = cmd
         raw = cmd_to_send.encode("utf-8")
         arduino_ser.write(raw)
-        if SERIAL_DEBUG:
-            # arduino RECIEVE command 
-            print(f"[ARDUINO SERIAL RECIEVE] -> {repr(raw)}  (text: {cmd.strip()})")
+ 
+        print(f"[PYTHON > ARDUINO] -> {repr(raw)}  (text: {cmd.strip()})")
         # also log to CSV
         try:
             # sent to arduino
@@ -95,7 +98,7 @@ def arduino_write(arduino_ser, cmd: str):
         except Exception:
             pass
     except Exception as e:
-        print(f"[ARDUINO SERIAL RECIEVE ERROR] failed to send {cmd!r}: {e}")
+        print(f"[PYTHON > ARDUINO SERIAL RECIEVE ERROR] failed to send {cmd!r}: {e}")
         try:
             log_event("Arduino", "TX_ERROR", f"{cmd} | {e}")
         except Exception:
@@ -110,7 +113,7 @@ def arduino_read_line(arduino_ser) -> str:
     try:
         raw = arduino_ser.readline()
     except Exception as e:
-        print(f"[ARDUINO SERIAL CMD ERROR] readline failed: {e}")
+        print(f"[ARDUINO > PYTHON SERIAL CMD ERROR] readline failed: {e}")
         return ""
 
     if not raw:
@@ -120,8 +123,7 @@ def arduino_read_line(arduino_ser) -> str:
 
     text = raw.decode('utf-8', errors='replace').strip()
 
-    if SERIAL_DEBUG:
-        print(f"[ARDUINO SERIAL CMD]  <- decoded: {text}")
+    # print(f"[ARDUINO > PYTHON]  <- decoded: {text}")
     try:
         # read from arduino
         log_event("Arduino", "RX", text)
@@ -129,14 +131,7 @@ def arduino_read_line(arduino_ser) -> str:
         pass
     return text
 
-# # log_event saves a row in the CSV file and prints a message --------------
-# def log_event(source, event, details=""):
-#     with open(csv_filename, mode="a", newline="") as f:
-#         writer = csv.writer(f)
-#         writer.writerow([datetime.now().isoformat(), source, event, details])
-#     print(f"[LOG] {source} - {event} {details}") --------------------------
-
-
+# log_event saves a row in the CSV file and prints a message --------------
 def log_event(source, event, details="", stim_params=""):
     # Use provided stim_params or get current values
     if not stim_params:
@@ -145,7 +140,7 @@ def log_event(source, event, details="", stim_params=""):
     with open(csv_filename, mode="a", newline="") as f:
         writer = csv.writer(f)
         writer.writerow([datetime.now().isoformat(), source, event, details, stim_params])
-    print(f"[LOG] {source} - {event} {details}")
+    # print(f"[LOG] {source} - {event} {details}")
     
 
 def build_stim_config():
@@ -245,27 +240,25 @@ async def main():
     # and respond to commands. This requires small firmware support on the Arduino
     # (see the snippet at the bottom of this file). We send a newline-terminated
     # ASCII command so the Arduino can read it with Serial.readStringUntil('\n').
-    # # CUT ----------------------------------------------------------------------------------------
-    # try:
-    #     arduino.write(b"RUN\n")
-    #     # Small pause to ensure the command is transmitted before we proceed
-    #     time.sleep(0.05)
-    #     log_event("Arduino", "CMD", "RUN sent")
-    # except Exception as e:
-    #     # If the serial write fails, record it but continue — the rest of the
-    #     # program may still work if Arduino is already in RUN mode.
-    #     print(f"Warning: failed to send RUN to Arduino: {e}")
-
-    # FIXED: Send UNLOCK command to start in unlocked state
+    # CUT ----------------------------------------------------------------------------------------
     try:
-        arduino_write(arduino, "UNLOCK")  # Start unlocked!
+        arduino_write(b"RUN\n")
+        # Small pause to ensure the command is transmitted before we proceed
         time.sleep(0.05)
-        arduino_write(arduino, "RUN")
-        time.sleep(0.05)
-        log_event("Arduino", "CMD", "UNLOCK and RUN sent")
+        log_event("Arduino", "CMD", "RUN sent")
     except Exception as e:
         # If the serial write fails, record it but continue — the rest of the
         # program may still work if Arduino is already in RUN mode.
+        print(f"Warning: failed to send RUN to Arduino: {e}")
+
+    # FIXED: Send UNLOCK command to start in unlocked state
+    try:
+        arduino_write(b"UNLOCK\n")  # Start unlocked!
+        time.sleep(0.05)
+        arduino_write(b"RUN\n")
+        time.sleep(0.05)
+        log_event("Arduino", "CMD", "UNLOCK and RUN sent")
+    except Exception as e:
         print(f"Warning: failed to send startup commands to Arduino: {e}")
 
 
@@ -321,72 +314,68 @@ async def main():
     threading.Thread(target=listen_for_amp, daemon=True).start()
     threading.Thread(target=listen_for_freq, daemon=True).start()
     threading.Thread(target=listen_for_pw, daemon=True).start()
+    print("Keyboard listening threads started.")
 
     # FES active flag
     fes_active = asyncio.Event()
+    print("FES event flag created.")
 
     try:
         while not stop_program:
-            # Read one line from the Arduino each iteration. arduino_read_line()
-            # returns an empty string if there's no data available. Using this
-            # avoids subtle timing issues where `in_waiting` can be zero
-            # when a line is arriving or when readline() with timeout would
-            # otherwise return data.
-            line = arduino_read_line(arduino)
-            if not line:
-                # No data this iteration; yield briefly and try again.
-                await asyncio.sleep(0.05)
-                continue
-            print(f"[PYTHON SERIAL IN] {line}")
+            if arduino.in_waiting: # checks if data is available from the serial port
+                line = arduino_read_line(arduino) # Read 1 line of bytes from Arduino
 
+                if not line:
+                    # No data this iteration; yield briefly and try again.
+                    await asyncio.sleep(0.05)
+                    continue
 
-            # FIXED: Enhanced logging with stim parameters
-            if line.startswith("IMU,"):
-                parts = line.split(",")
-                if len(parts) >= 4:
-                    ax, ay, az = parts[1], parts[2], parts[3]
-                    log_event("IMU", "Position", f"AX={ax} AY={ay} AZ={az}", 
-                                f"{STIM_PARAMS['amp']},{STIM_PARAMS['freq']},{STIM_PARAMS['pw']}")
-                else: 
-                    log_event("Arduino", "Malformed IMU", line, 
-                                f"{STIM_PARAMS['amp']},{STIM_PARAMS['freq']},{STIM_PARAMS['pw']}")
+                print(f"[Arduino > Python] {line}")
+   
+                # IMU message: "IMU,ax,ay,az"
+                if line.startswith("IMU,"):
+                    parts = line.split(",")
+                    if len(parts) >= 4:
+                        ax, ay, az = parts[1], parts[2], parts[3]
+                        log_event("IMU", "Position", f"AX={ax} AY={ay} AZ={az}")
+                    else:
+                        log_event("Arduino", "Malformed IMU", line)
 
-            # FIXED: Better FES control
-            elif line.startswith("FES ON"):
-                if not fes_active.is_set():
-                    fes_active.set()
-                    asyncio.create_task(stimulation_loop(mid_level, fes_active))
-                    try:
-                        configs = build_stim_config()
-                        await mid_level.update(configs)
-                        log_event("P24", "Stimulation STARTED", "trigger=arduino", 
-                                    f"{STIM_PARAMS['amp']},{STIM_PARAMS['freq']},{STIM_PARAMS['pw']}")
-                    except Exception as e:
-                        log_event("P24", "StartError", str(e), 
-                                    f"{STIM_PARAMS['amp']},{STIM_PARAMS['freq']},{STIM_PARAMS['pw']}")
-            
-            elif line.startswith("FES OFF"):
-                if fes_active.is_set():
-                    fes_active.clear()
-                    await mid_level.stop()
-                    log_event("P24", "Stimulation STOPPED", "trigger=arduino", 
-                                f"{STIM_PARAMS['amp']},{STIM_PARAMS['freq']},{STIM_PARAMS['pw']}")
+                # FES control messages from Arduino -> control P24 stimulation
+                elif line.startswith("FES ON"):
+                # elif line.startswith("FES ON"): ----------------------------------
+                    if not fes_active.is_set(): # if not on already
+                        fes_active.set() # set the active flag
+                        # Start the stimulation loop as a background task
+                        asyncio.create_task(stimulation_loop(mid_level, fes_active))
+                        # Send one immediate update so stimulation starts right away
+                        try:
+                            configs = build_stim_config()
+                            await mid_level.update(configs)
+                            log_event("P24", "ImmediateStart", "update sent")
+                        except Exception as e:
+                            log_event("P24", "ImmediateStartError", str(e))
+                        log_event("P24", "Stimulation STARTED", "trigger=arduino")
+                elif line.startswith("FES OFF"):
+                    if fes_active.is_set():
+                        fes_active.clear()
+                        await mid_level.stop()
+                        log_event("P24", "Stimulation STOPPED", "trigger=arduino")
 
-            # FIXED: Log CH events properly
-            elif line in ("CH ON", "CH OFF"):
-                log_event("Carbonhand", "State", line, 
-                            f"{STIM_PARAMS['amp']},{STIM_PARAMS['freq']},{STIM_PARAMS['pw']}")
+                # Carbonhand messages (Arduino pulses the relay directly) - just log state
+                elif line.startswith("CH") or line in ("CH LOCK ON", "CH LOCK OFF"):
+                    log_event("Carbonhand", "State", line)
 
-            # NEW: Log system messages
-            elif line.startswith("SYSTEM,") or line.startswith("DEVICE,"):
-                log_event("System", "Status", line, 
-                            f"{STIM_PARAMS['amp']},{STIM_PARAMS['freq']},{STIM_PARAMS['pw']}")
-
+                else:
+                    # Generic messages
+                    log_event("Arduino", "Message", line)
+# -------------------------------------------------------------
             else:
-                log_event("Arduino", "Message", line, 
-                            f"{STIM_PARAMS['amp']},{STIM_PARAMS['freq']},{STIM_PARAMS['pw']}")
+                # print(f"[Arduino > Python] NO commands")
+                await asyncio.sleep(0.5)  # No data; wait longer before checking again
+                continue
 
-        await asyncio.sleep(0.05)
+            await asyncio.sleep(0.05)
 
     except KeyboardInterrupt:
         print("Exiting program...")
@@ -394,20 +383,8 @@ async def main():
         fes_active.clear()
         await mid_level.stop()
 
-    # # Tell Arduino to pause its active loop and turn off hardware so nothing -------------------
-    # # continues running after Python exits. We send PAUSE, FES OFF, CH OFF.
-    # try:
-    #     arduino.write(b"PAUSE\n")
-    #     time.sleep(0.02)
-    #     arduino.write(b"FES OFF\n")
-    #     time.sleep(0.02)
-    #     arduino.write(b"CH OFF\n")
-    #     time.sleep(0.02)
-    #     log_event("Arduino", "CMD", "PAUSE,FES OFF,CH OFF sent")
-    # except Exception as e:
-    #     print(f"Warning: failed to send shutdown commands to Arduino: {e}") ----------------------
-
-    # FIXED: Send proper shutdown commands
+    # Tell Arduino to pause its active loop and turn off hardware so nothing -------------------
+    # continues running after Python exits. We send PAUSE, FES OFF, CH OFF.
     try:
         arduino_write(arduino, "PAUSE")
         time.sleep(0.02)
@@ -424,7 +401,7 @@ async def main():
 
     p24_serial.close()
     arduino.close()
-    log_event("System", "Shutdown Complete")
+    log_event("System", "Shutdown", "COMPLETE")
 
 # if __name__ == "__main__":
 #     asyncio.run(main())

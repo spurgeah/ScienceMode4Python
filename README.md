@@ -42,15 +42,17 @@ device manager from powershell - devmgmt.msc
  - interface VSCode with Arduino CLI to make my life easier
      - added to PATH -  C:\Program Files\Arduino CLI
      - IDE location - C:\Users\spurgeah\AppData\Local\Programs\Arduino IDE 
-figure out why I cant upload code to arduino with vscode - error exit status 1
 
 
+## 10/22
+- figure out why I cant upload code to arduino with vscode - error exit status 1
+    - too many .ino files in the same folder, now 2.ino stands alone
+- removed corrupted CLI from computer and from path, downloaded Arduino Maker VSCode extension
+- fixed Py > Ard shutdown commands in 3.py
 
-ghost code python
-connect to p24
-connect to arudino
-read IMU
-
+/hti_arduino2/hti_arduino2.ino - correct file set up with arduino extensions
+hti_runlive3.py - works, needs some sprucing
+fix 2.ino so it prints imu AND serial commands
 
 
 ## Ghost Code Arduino
