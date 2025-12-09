@@ -102,12 +102,12 @@ void loop() {
   mpu.getAcceleration(&ax, &ay, &az);
 
   // Send the raw IMU values over Serial in a simple CSV format: IMU,ax,ay,az
-  Serial.print("IMU,");
-  Serial.print(ax);
-  Serial.print(",");
-  Serial.print(ay);
-  Serial.print(",");
-  Serial.println(az);
+  Serial.print("IMU, AY tilt: ");
+  // Serial.print(ax);
+  // Serial.print(",");
+  Serial.println(ay);
+  // Serial.print(",");
+  // Serial.println(az);
 
   delay(500); 
   

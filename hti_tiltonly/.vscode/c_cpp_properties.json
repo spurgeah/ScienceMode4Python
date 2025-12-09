@@ -1,0 +1,51 @@
+{
+  "configurations": [
+    {
+      "name": "Arduino",
+      "includePath": [
+        "\\\\clusterfsnew.ceas1.uc.edu\\students\\spurgeah\\My Documents\\GitHub\\ScienceMode4Python\\libraries/**",
+        "\\\\clusterfsnew.ceas1.uc.edu\\students\\spurgeah\\My Documents\\GitHub\\ScienceMode4Python\\hti_tiltonly/**"
+      ],
+      "forcedInclude": [],
+      "compilerPath": "C:\\Users\\spurgeah\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+      "compilerArgs": [
+        "C:\\Users\\spurgeah\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-MMD",
+        "-flto",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_UNO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\spurgeah\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\cores\\arduino",
+        "-IC:\\Users\\spurgeah\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\variants\\standard",
+        "-IC:\\Users\\spurgeah\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\libraries\\Wire\\src",
+        "-I\\\\clusterfsnew.ceas1.uc.edu\\students\\spurgeah\\My Documents\\GitHub\\ScienceMode4Python\\libraries\\MPU6050\\src",
+        "\\\\clusterfsnew.ceas1.uc.edu\\students\\spurgeah\\My Documents\\GitHub\\ScienceMode4Python\\hti_tiltonly\\build\\sketch\\hti_tiltonly.ino.cpp",
+        "-o",
+        "\\\\clusterfsnew.ceas1.uc.edu\\students\\spurgeah\\My Documents\\GitHub\\ScienceMode4Python\\hti_tiltonly\\build\\sketch\\hti_tiltonly.ino.cpp.o"
+      ],
+      "defines": [
+        "F_CPU=16000000L",
+        "ARDUINO=10607",
+        "ARDUINO_AVR_UNO",
+        "ARDUINO_ARCH_AVR",
+        "USBCON"
+      ],
+      "cStandard": "c17",
+      "cppStandard": "c++17"
+    }
+  ],
+  "version": 4
+}
