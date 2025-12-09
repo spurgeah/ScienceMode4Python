@@ -25,8 +25,8 @@ const int chRelayPin = 6;  // Pin that drives the relay controlling Carbonhand
 const int resetButtonPin = 2; // Pin connected to a reset button
 
 // Thresholds and timing (numbers tuned for your IMU readings)
-const int rightTiltThreshold = -13000; // If the IMU's Y value goes below this, it counts as a right tilt
-const int leftTiltThreshold  = 3000;   // If the IMU's Y value goes above this, it counts as a left tilt
+const int rightTiltThreshold = -11000; // If the IMU's Y value goes below this, it counts as a right tilt
+const int leftTiltThreshold  = 1500;   // If the IMU's Y value goes above this, it counts as a left tilt
 const unsigned long holdTime = 2000;   // How long the tilt must be held (in milliseconds) to trigger
 
 // State variables (remember whether FES / Carbonhand are ON or OFF)
@@ -103,11 +103,8 @@ void loop() {
 
   // Send the raw IMU values over Serial in a simple CSV format: IMU,ax,ay,az
   Serial.print("IMU, AY tilt: ");
-  // Serial.print(ax);
-  // Serial.print(",");
   Serial.println(ay);
-  // Serial.print(",");
-  // Serial.println(az);
+
 
   delay(500); 
   

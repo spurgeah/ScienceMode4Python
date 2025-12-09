@@ -50,7 +50,7 @@ P24_BAUD = 9600  # Baud rate for P24 serial
 
 
 # Default stimulation parameters
-num_channels = 2   # <-- SET NUMBER OF CHANNELS HERE (1–4)
+num_channels = 1   # <-- SET NUMBER OF CHANNELS HERE (1–4)
 STIM_PARAMS = {
     1: {"amp": 5, "freq": 35, "pw": 300},
     2: {"amp": 5, "freq": 35, "pw": 300},
@@ -81,7 +81,7 @@ stop_program = False # Flag to indicate if the stimulation loop should stop
 # Listens for Enter key to stop stimulation
 def listen_for_input():
     global stop_program
-    input("Press Enter to stop...\n")  # Waits for Enter key
+    input("**** Press Enter to stop...**** \n")  # Waits for Enter key
     stop_program = True
 
 # Serial communication helper functions
@@ -142,7 +142,9 @@ def arduino_read_line(arduino_ser) -> str:
 def log_event(source, event, details="", stim_params=""):
     # Use provided stim_params or get current values
     if not stim_params:
-        stim_params = f"{STIM_PARAMS['amp']},{STIM_PARAMS['freq']},{STIM_PARAMS['pw']}"
+        stim_params = {}
+        for ch in range(1, num_channels):
+            stim_params[ch] = f"{STIM_PARAMS[ch]['amp']},{STIM_PARAMS[ch]['freq']},{STIM_PARAMS[ch]['pw']}"
     
     with open(csv_filename, mode="a", newline="") as f:
         writer = csv.writer(f)
@@ -151,18 +153,19 @@ def log_event(source, event, details="", stim_params=""):
     
 
 def build_stim_config():
-  configs = []
-  for ch in range(1, num_channels):
-    amp = int(STIM_PARAMS[ch]["amp"]) # converts to integer
-    pw = int(STIM_PARAMS[ch]["pw"])
-    freq = int(STIM_PARAMS[ch]["freq"])
+    configs = []
+    for ch in range(1, num_channels):
+        amp = int(STIM_PARAMS[ch]["amp"]) # converts to integer
+        pw = int(STIM_PARAMS[ch]["pw"])
+        freq = int(STIM_PARAMS[ch]["freq"])
 
-    points = [
-      ChannelPoint(pw // 2, amp), # positive phase
-      ChannelPoint(pw // 2, 0),
-      ChannelPoint(pw // 2, -amp) # negative phase
-      ]
-  configs.append(MidLevelChannelConfiguration(True, 3, freq, points))
+        points = [
+        ChannelPoint(pw // 2, amp), # positive phase
+        ChannelPoint(pw // 2, 0),
+        ChannelPoint(pw // 2, -amp) # negative phase
+        ]
+      
+        configs.append(MidLevelChannelConfiguration(True, 3, freq, points))
     
     return configs
 

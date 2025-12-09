@@ -25,34 +25,23 @@ upon opening VSCode
 - `cd HTIcontrol`
 - `$env:PYTHONPATH="Y:\Hasomed Code\HasomedSetup14\ScienceMode4Python"`
 - `python p24_runlive.py`
-- `python hti_runlive.py`
+- `python hti_runlive4.py`
 
 device manager from powershell - devmgmt.msc 
 
-## 10/16
-- start with runing as-is - added delay in .ino to  avoid overwhelming the serial output 
-- CH not turning on - emailed BioServo
-- switched CHRelayPin, now Low = off? Ryan's suggestion
-- removed deviceLocked from .ino
-- wayback machine files - hti_runlive2.py and oct17_old.ino
 
+## 12/9
+- fixed the MPU libraries, download MPU6050 by ElectronicCats in Arduino Maker Workshop
+- added Wire library to Documents > Arduino > libraries instead of editing the includePath in c_cpp_properties.json
+    - should have already been in the Arduino AVR boards package, investigation in progress
+- hti_tiltonly.ino compiles, uploads and runs
+- hti_ardiuino.ino is compiling, uploads
+    - IMU output REMOVED to allow other serial messages to come through
+    - but not finding Wire.h, also does not have a build folder
 
-## 10/20
-- created ghost code for loop logis sanity check
- - interface VSCode with Arduino CLI to make my life easier
-     - added to PATH -  C:\Program Files\Arduino CLI
-     - IDE location - C:\Users\spurgeah\AppData\Local\Programs\Arduino IDE 
-
-
-## 10/22
-- figure out why I cant upload code to arduino with vscode - error exit status 1
-    - too many .ino files in the same folder, now 2.ino stands alone
-- removed corrupted CLI from computer and from path, downloaded Arduino Maker VSCode extension
-- fixed Py > Ard shutdown commands in 3.py
-
-/hti_arduino2/hti_arduino2.ino - correct file set up with arduino extensions
-hti_runlive3.py - works, needs some sprucing
-fix 2.ino so it prints imu AND serial commands
+## 12/10
+- test hit_runlive4.py and hti_arduino.ino system
+- double check that reset button works every time
 
 
 ## Ghost Code Arduino
@@ -158,3 +147,28 @@ FES activation does not turn on at all
 - Immediate mid_level.update() is sent when Python receives FES ON so stimulation starts immediately.
 - CSV header was expanded; log_event now also records current stim params.
 - added/fixed delays between serial communications and if statements
+
+## 10/16
+- start with runing as-is - added delay in .ino to  avoid overwhelming the serial output 
+- CH not turning on - emailed BioServo
+- switched CHRelayPin, now Low = off? Ryan's suggestion
+- removed deviceLocked from .ino
+- wayback machine files - hti_runlive2.py and oct17_old.ino
+
+
+## 10/20
+- created ghost code for loop logis sanity check
+ - interface VSCode with Arduino CLI to make my life easier
+     - added to PATH -  C:\Program Files\Arduino CLI
+     - IDE location - C:\Users\spurgeah\AppData\Local\Programs\Arduino IDE 
+
+
+## 10/22
+- figure out why I cant upload code to arduino with vscode - error exit status 1
+    - too many .ino files in the same folder, now 2.ino stands alone
+- removed corrupted CLI from computer and from path, downloaded Arduino Maker VSCode extension
+- fixed Py > Ard shutdown commands in 3.py
+
+/hti_arduino2/hti_arduino2.ino - correct file set up with arduino extensions
+hti_runlive3.py - works, needs some sprucing
+fix 2.ino so it prints imu AND serial commands

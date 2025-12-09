@@ -3,7 +3,7 @@
     {
       "name": "Arduino",
       "includePath": [
-        "\\\\clusterfsnew.ceas1.uc.edu\\students\\spurgeah\\My Documents\\Arduino\\libraries/**",
+        "\\\\clusterfsnew.ceas1.uc.edu\\students\\spurgeah\\My Documents\\GitHub\\ScienceMode4Python\\libraries/**",
         "\\\\clusterfsnew.ceas1.uc.edu\\students\\spurgeah\\My Documents\\GitHub\\ScienceMode4Python\\hti_arduino/**"
       ],
       "forcedInclude": [],
@@ -31,7 +31,7 @@
         "-IC:\\Users\\spurgeah\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\cores\\arduino",
         "-IC:\\Users\\spurgeah\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\variants\\standard",
         "-IC:\\Users\\spurgeah\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\libraries\\Wire\\src",
-        "-I\\\\clusterfsnew.ceas1.uc.edu\\students\\spurgeah\\My Documents\\Arduino\\libraries\\MPU6050\\src",
+        "-I\\\\clusterfsnew.ceas1.uc.edu\\students\\spurgeah\\My Documents\\GitHub\\ScienceMode4Python\\libraries\\MPU6050\\src",
         "\\\\clusterfsnew.ceas1.uc.edu\\students\\spurgeah\\My Documents\\GitHub\\ScienceMode4Python\\hti_arduino\\build\\sketch\\hti_arduino.ino.cpp",
         "-o",
         "\\\\clusterfsnew.ceas1.uc.edu\\students\\spurgeah\\My Documents\\GitHub\\ScienceMode4Python\\hti_arduino\\build\\sketch\\hti_arduino.ino.cpp.o"
