@@ -43,6 +43,11 @@ Python 3.11 or higher
   - `python -m build`
 - Install local library
   - `pip install .\dist\science_mode_4-0.0.7-py3-none-any.whl` (adjust filename accordingly)
+ 
+## Download Arduino Maker Workshop
+- In VSCode, search for the extension Arduino Maker Workshop by TheLastOutpostWorkshop
+- In the Library Manager tab, download MPU6050 by ElectronicCats
+
 
 # Examples
 
