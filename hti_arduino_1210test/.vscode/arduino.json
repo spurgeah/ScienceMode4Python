@@ -1,15 +1,16 @@
 {
   "port": "COM6",
+  "configuration": "",
   "output": "build",
   "board": "arduino:avr:uno",
-  "programmer": "arduinoasisp",
+  "programmer": "",
   "useProgrammer": false,
   "optimize_for_debug": false,
   "configurationRequired": false,
   "compile_profile": "",
   "monitorPortSettings": {
     "settings": {
-      "port": "",
+      "port": "COM6",
       "baudRate": 9600,
       "lineEnding": "\r\n",
       "dataBits": 8,
@@ -17,6 +18,5 @@
       "stopBits": "one"
     },
     "profile_name": ""
-  },
-  "configuration": ""
+  }
 }

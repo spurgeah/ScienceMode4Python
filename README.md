@@ -37,11 +37,22 @@ device manager from powershell - devmgmt.msc
 - hti_tiltonly.ino compiles, uploads and runs
 - hti_ardiuino.ino is compiling, uploads
     - IMU output REMOVED to allow other serial messages to come through
-    - but not finding Wire.h, also does not have a build folder
+    - but not finding Wire.h, also does not have a build folder - fixed with AMW
 
 ## 12/10
 - test hit_runlive4.py and hti_arduino.ino system
 - double check that reset button works every time
+ - CH still activates when arduino on LOCK
+ - FES is jittery, chech the 1.5 seconds thing and serial timing
+- edit keyboard listeners for multiple channels
+
+I want the arduino to pause all function and turn off the FES and CH when runMode = false
+When hti_runlive4 runs, it sends a message to arduino to tunr runMode true, and the IMU tilting functions to 'turn on'.
+Also, when the FES is turned on, it takes about a 2-3 second pause before actually turning the stimulation on. Same when it is turned off. How can I reduce the onset/turning off delay?
+
+## 12/11
+- _fixed files in HTI Control are written by Github Copilot - enter desired information into main files, they DO NOT work on their own
+_
 
 
 ## Ghost Code Arduino

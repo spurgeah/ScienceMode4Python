@@ -32,6 +32,7 @@ const unsigned long holdTime = 2000;   // How long the tilt must be held (in mil
 bool fesState = false; // start with FES OFF
 bool chState = false;  // start with Carbonhand OFF
 bool runMode = false; // Whether the main loop should run (true = run, false = paused)
+// When true: process IMU and toggles. When false: stay idle but accept serial commands.
 // Debounce / release flags to avoid toggling multiple times during one tilt
 bool waitingForRightRelease = false;
 bool waitingForLeftRelease = false;
@@ -76,6 +77,7 @@ void setup() {
 // loop() runs over and over; this is the main program
 void loop() {
 
+  // RESET BUTTON
   // If the reset button is pressed (reads LOW because of INPUT_PULLUP)
   if (digitalRead(resetButtonPin) == LOW) {
     // Clear states and flags so both systems are considered OFF
