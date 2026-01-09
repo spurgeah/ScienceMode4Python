@@ -3,6 +3,8 @@
 # deleted plot of stim paraeters for cleaner controls
 # controls up to 4 channels always
 
+## Runs continuously - stim turned on and off with SPACE
+
 import asyncio  # For asynchronous programming (non-blocking loops)
 import threading  # To run keyboard listeners in parallel
 import keyboard  # To capture real-time key presses
@@ -60,6 +62,7 @@ def listen_for_input():
     global stop_loop
     input("Press Enter to stop...\n")  # Waits for Enter key
     stop_loop = True
+
 
 # Listens for amplitude changes via keyboard
 # 1+w/q = CH1 up/down, 2+w/q = CH2 up/down, etc. 
@@ -145,6 +148,8 @@ async def main():
     threading.Thread(target=listen_for_amp, daemon=True).start()
     threading.Thread(target=listen_for_freq, daemon=True).start()
     threading.Thread(target=listen_for_pw, daemon=True).start()
+    threading.Thread(target=listen_for_fes, daemon=True).start()
+    
 
     # user input to begin stimulation  
     #input("Press Enter to begin stimulation...\n")
@@ -157,6 +162,19 @@ async def main():
         await mid_level.update(configs)  # Apply to device
         await asyncio.sleep(1.0)  # Wait a bit
         #await mid_level.get_current_data()  # Keep connection alive
+
+        # Listen for FES toggle
+        if keyboard.is_pressed('space'):
+            print("Toggling stimulation ON/OFF")
+
+            if mid_level.is_stimulating(): #if FES is on
+                await mid_level.stop() # turn it off
+                print("FES OFF")
+            else: #if FES is off
+                await mid_level.start() #turn it on
+                print("FES ON")
+            keyboard.wait('r')  # wait for 'r' to be pressed to avoid multiple toggles
+
 
     print("Stopping stimulation...")
     # Print final parameters

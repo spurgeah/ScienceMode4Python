@@ -3,6 +3,9 @@
 # deleted plot of stim paraeters for cleaner controls
 # controls up to 4 channels always
 
+# Runs ONCE - initializes, starts stimming
+# press enter to stop
+
 import asyncio  # For asynchronous programming (non-blocking loops)
 import threading  # To run keyboard listeners in parallel
 import keyboard  # To capture real-time key presses
