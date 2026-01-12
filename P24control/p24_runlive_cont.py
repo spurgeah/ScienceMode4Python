@@ -3,7 +3,9 @@
 # deleted plot of stim paraeters for cleaner controls
 # controls up to 4 channels always
 
+# draft 1
 ## Runs continuously - stim turned on and off with SPACE
+# ONLY WORKS FOR THE FIRST TOGGLE, USE P24_CONT.PY FOR CONTINUOUS TOGGLING
 
 import asyncio  # For asynchronous programming (non-blocking loops)
 import threading  # To run keyboard listeners in parallel
@@ -11,6 +13,7 @@ import keyboard  # To capture real-time key presses
 import matplotlib 
 import matplotlib.pyplot as plt  # For plotting data
 import matplotlib.animation as animation  # For updating plots in real time
+import copy  # For deep copying params
 
 # Import classes to communicate with the Hasomed P24 device
 from science_mode_4 import DeviceP24, MidLevelChannelConfiguration, ChannelPoint, SerialPortConnection
@@ -26,7 +29,7 @@ num_channels = 1   # <-- SET NUMBER OF CHANNELS HERE (1–4)
 # Default settings per channel
 # Define amplitude (mA), frequency (Hz), and pulse width (µs) for each channel
 channel_defaults = {
-    1: {"amp": 5, "freq": 35, "pw": 300},
+    1: {"amp": 5, "freq": 35, "pw": 120},
     2: {"amp": 5, "freq": 35, "pw": 300},
     3: {"amp": 8, "freq": 40, "pw": 150},
     4: {"amp": 6, "freq": 30, "pw": 200},
@@ -36,7 +39,16 @@ channel_defaults = {
 # keep only active channels
 channel_defaults = {ch: channel_defaults[ch] for ch in range(1, num_channels+1)}
 
-# Step sizes for key changes
+# Initialize all 8 channels in params (even unused ones have defaults)
+params = {}
+for ch in range(1, 9):
+    if ch <= num_channels:
+        params[ch] = channel_defaults[ch].copy()
+    else:
+        params[ch] = {"amp": 1, "freq": 1, "pw": 1}
+
+# Thread lock for safe params access
+params_lock = threading.Lock()
 delta_amp = 1 # mA
 delta_freq = 5 # Hz
 delta_pw = 10 # µs
@@ -52,9 +64,9 @@ freq_max = 2000 # maximum frequency in Hz
 pw_max = 10000 # maximum pulse width in microseconds
     #10-65520 in manual
 
-# Parameters that will be updated live during runtime
-# params = channel_defaults.copy()
-params = {ch: channel_defaults[ch].copy() for ch in channel_defaults}
+# Track stimulation state
+is_stimulation_active = False
+stimulation_state_lock = threading.Lock()
 
 stop_loop = False  # Flag to indicate if the stimulation loop should stop
 # Listens for Enter key to stop stimulation
@@ -63,6 +75,48 @@ def listen_for_input():
     input("Press Enter to stop...\n")  # Waits for Enter key
     stop_loop = True
 
+# Async function to listen for FES toggle via spacebar
+async def listen_for_fes(mid_level):
+    """Runs in background to toggle stimulation on/off with spacebar (single press)"""
+    global is_stimulation_active
+    space_pressed = False
+    while not stop_loop:
+        if keyboard.is_pressed('space'):
+            if not space_pressed:  # Transition from not-pressed to pressed
+                print("\nToggling stimulation ON/OFF")
+                try:
+                    with stimulation_state_lock:
+                        is_currently_active = is_stimulation_active
+                    
+                    if is_currently_active:
+                        # Turn OFF
+                        await mid_level.stop()
+                        with stimulation_state_lock:
+                            is_stimulation_active = False
+                        print("FES OFF")
+
+                        # await mid_level.initialize()  # Get device info and stop any ongoing stimulation
+                        await asyncio.sleep(0.2)
+
+                    else:
+                        # Turn ON
+                        try:
+                            configs = build_stim_config()
+                            await mid_level.update(configs)
+                            with stimulation_state_lock:
+                                is_stimulation_active = True
+                            print("FES ON")
+                            await asyncio.sleep(0.2)
+                        except Exception as config_error:
+                            print(f"Error building/sending config: {config_error}")
+                except Exception as e:
+                    print(f"Error toggling stimulation: {e}")
+                
+                space_pressed = True
+        else:
+            space_pressed = False
+        
+        await asyncio.sleep(0.05)  # Small delay to prevent busy waiting
 
 # Listens for amplitude changes via keyboard
 # 1+w/q = CH1 up/down, 2+w/q = CH2 up/down, etc. 
@@ -71,11 +125,13 @@ def listen_for_amp():
         for ch in range(1, num_channels+1):
             if keyboard.is_pressed(str(ch)):
                 if keyboard.is_pressed('w'):
-                    params[ch]["amp"] = min(amp_max, params[ch]["amp"] + delta_amp)
+                    with params_lock:
+                        params[ch]["amp"] = min(amp_max, params[ch]["amp"] + delta_amp)
                     print(f"[CH{ch}] Amplitude increased to {params[ch]['amp']} mA")
                     keyboard.wait('r')
                 elif keyboard.is_pressed('q'):
-                    params[ch]["amp"] = max(0.1, params[ch]["amp"] - delta_amp)
+                    with params_lock:
+                        params[ch]["amp"] = max(0.1, params[ch]["amp"] - delta_amp)
                     print(f"[CH{ch}] Amplitude decreased to {params[ch]['amp']} mA")
                     keyboard.wait('r')
 
@@ -86,11 +142,13 @@ def listen_for_freq():
         for ch in range(1, num_channels+1):
             if keyboard.is_pressed(str(ch)):
                 if keyboard.is_pressed('s'):
-                    params[ch]["freq"] = min(freq_max, params[ch]["freq"] + delta_freq)
+                    with params_lock:
+                        params[ch]["freq"] = min(freq_max, params[ch]["freq"] + delta_freq)
                     print(f"[CH{ch}] Frequency increased to {params[ch]['freq']} Hz")
                     keyboard.wait('r')
                 elif keyboard.is_pressed('a'):
-                    params[ch]["freq"] = max(0.1, params[ch]["freq"] - delta_freq)
+                    with params_lock:
+                        params[ch]["freq"] = max(0.1, params[ch]["freq"] - delta_freq)
                     print(f"[CH{ch}] Frequency decreased to {params[ch]['freq']} Hz")
                     keyboard.wait('r')
 
@@ -101,11 +159,13 @@ def listen_for_pw():
         for ch in range(1, num_channels+1):
             if keyboard.is_pressed(str(ch)):
                 if keyboard.is_pressed('x'):
-                    params[ch]["pw"] = min(pw_max, params[ch]["pw"] + delta_pw)
+                    with params_lock:
+                        params[ch]["pw"] = min(pw_max, params[ch]["pw"] + delta_pw)
                     print(f"[CH{ch}] Pulse Width increased to {params[ch]['pw']} mA")
                     keyboard.wait('r')
                 elif keyboard.is_pressed('z'):
-                    params[ch]["pw"] = max(0.1, params[ch]["pw"] - delta_pw)
+                    with params_lock:
+                        params[ch]["pw"] = max(0.1, params[ch]["pw"] - delta_pw)
                     print(f"[CH{ch}] Pulse Width decreased to {params[ch]['pw']} mA")
                     keyboard.wait('r')
 
@@ -114,17 +174,29 @@ def listen_for_pw():
 # This is called before every stimulation update
 def build_stim_config():
     configs = []
-    for ch in range(1, num_channels+1):
-        amp = int(params[ch]["amp"])
-        pw = int(params[ch]["pw"] / 2)
-        freq = params[ch]["freq"]
-
-        points = [
-            ChannelPoint(pw, amp),
-            ChannelPoint(pw, 0),
-            ChannelPoint(pw, -amp)
-        ]
-        configs.append(MidLevelChannelConfiguration(True, 3, freq, points))
+    with params_lock:
+        # Build for all 8 channels (even though we only control num_channels)
+        for ch in range(1, 9):  # 8 channels on P24
+            if ch <= num_channels:
+                # Active channels use our parameters
+                amp = int(params[ch]["amp"])
+                pw = int(params[ch]["pw"] / 2)
+                freq = params[ch]["freq"]
+                # Active channel configuration
+                points = [
+                    ChannelPoint(pw, amp),
+                    ChannelPoint(pw, 0),
+                    ChannelPoint(pw, -amp)
+                ]
+                configs.append(MidLevelChannelConfiguration(True, 3, freq, points))
+            else:
+                # Inactive channels - set enabled=False with minimal valid values
+                points = [
+                    ChannelPoint(1, 1),
+                    ChannelPoint(1, 0),
+                    ChannelPoint(1, -1)
+                ]
+                configs.append(MidLevelChannelConfiguration(False, 3, 1, points))
     return configs
 
 
@@ -148,33 +220,30 @@ async def main():
     threading.Thread(target=listen_for_amp, daemon=True).start()
     threading.Thread(target=listen_for_freq, daemon=True).start()
     threading.Thread(target=listen_for_pw, daemon=True).start()
-    threading.Thread(target=listen_for_fes, daemon=True).start()
     
+    # Start FES listener as a concurrent background task
+    fes_task = asyncio.create_task(listen_for_fes(mid_level))
 
     # user input to begin stimulation  
-    #input("Press Enter to begin stimulation...\n")
+    # input("Press Enter to begin stimulation...\n")
     # once user begins stimulation
-    print(f"Stimulation started with {num_channels} channel(s). Press Enter to stop.")
+    print(f"Stimulation started with {num_channels} channel(s). Press SPACE to toggle ON/OFF, Enter to stop.")
 
-    # Main stimulation loop
+    # Main stimulation loop 
     while not stop_loop:
-        configs = build_stim_config()  # Get updated config
-        await mid_level.update(configs)  # Apply to device
-        await asyncio.sleep(1.0)  # Wait a bit
-        #await mid_level.get_current_data()  # Keep connection alive
+        try:
+            with stimulation_state_lock:
+                if is_stimulation_active:
+                    configs = build_stim_config()  # Get updated config
+                    await mid_level.update(configs)  # Apply to device
+            
+            await asyncio.sleep(1.0)  # Wait a bit
+        except Exception as e:
+            print(f"Error in main loop: {e}")
+            await asyncio.sleep(1.0)  # Continue loop even on error
 
-        # Listen for FES toggle
-        if keyboard.is_pressed('space'):
-            print("Toggling stimulation ON/OFF")
-
-            if mid_level.is_stimulating(): #if FES is on
-                await mid_level.stop() # turn it off
-                print("FES OFF")
-            else: #if FES is off
-                await mid_level.start() #turn it on
-                print("FES ON")
-            keyboard.wait('r')  # wait for 'r' to be pressed to avoid multiple toggles
-
+    
+    fes_task.cancel()  # Cancel the FES listener task when exiting
 
     print("Stopping stimulation...")
     # Print final parameters
