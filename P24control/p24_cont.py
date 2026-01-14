@@ -37,8 +37,8 @@ num_channels = 1   # <-- SET NUMBER OF CHANNELS HERE (1–4)
 
 # Default settings per channel
 channel_defaults = {
-    1: {"amp": 8, "freq": 35, "pw": 120},
-    2: {"amp": 5, "freq": 35, "pw": 300},
+    1: {"amp": 30, "freq": 35, "pw": 100},
+    2: {"amp": 25, "freq": 35, "pw": 100},
     3: {"amp": 8, "freq": 40, "pw": 150},
     4: {"amp": 6, "freq": 30, "pw": 200},
 }

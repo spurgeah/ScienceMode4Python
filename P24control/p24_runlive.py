@@ -22,13 +22,13 @@ com_port = ExampleUtils.get_comport_from_commandline_argument()
 #matplotlib.use('Qt5Agg')  # Use Qt5 backend for interactive plotting
 
 # ===== USER CONFIGURATION =====
-num_channels = 1   # <-- SET NUMBER OF CHANNELS HERE (1–4)
+num_channels = 2   # <-- SET NUMBER OF CHANNELS HERE (1–4)
 
 # Default settings per channel
 # Define amplitude (mA), frequency (Hz), and pulse width (µs) for each channel
 channel_defaults = {
-    1: {"amp": 5, "freq": 35, "pw": 300},
-    2: {"amp": 5, "freq": 35, "pw": 300},
+    1: {"amp": 15, "freq": 35, "pw": 120},
+    2: {"amp": 15, "freq": 35, "pw": 120},
     3: {"amp": 8, "freq": 40, "pw": 150},
     4: {"amp": 6, "freq": 30, "pw": 200},
     #    Amps = mA, Freq = Hz, PW = µs
@@ -110,6 +110,7 @@ def listen_for_pw():
                     keyboard.wait('r')
 
 
+
 # Builds stimulation configuration for all channels based on current params
 # This is called before every stimulation update
 def build_stim_config():
@@ -126,7 +127,6 @@ def build_stim_config():
         ]
         configs.append(MidLevelChannelConfiguration(True, 3, freq, points))
     return configs
-
 
 # ========== MAIN EXECUTION ==========
 async def main():
@@ -158,15 +158,16 @@ async def main():
     while not stop_loop:
         configs = build_stim_config()  # Get updated config
         await mid_level.update(configs)  # Apply to device
-        await asyncio.sleep(1.0)  # Wait a bit
+        await asyncio.sleep(1)  # Wait a bit
         #await mid_level.get_current_data()  # Keep connection alive
 
     print("Stopping stimulation...")
     # Print final parameters
     for ch in range(1, num_channels+1):
         print(f"Current amplitude for channel {ch}: {params[ch]['amp']} mA ")
-        print(f"Current pulse width for channel {ch}: {params[ch]['pw']} µs ")
         print(f"Current frequency for channel {ch}: {params[ch]['freq']} Hz ")
+        print(f"Current pulse width for channel {ch}: {params[ch]['pw']} µs ")
+        
 
 
     # After stopping, cleanly shut down
