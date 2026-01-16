@@ -22,13 +22,13 @@ com_port = ExampleUtils.get_comport_from_commandline_argument()
 #matplotlib.use('Qt5Agg')  # Use Qt5 backend for interactive plotting
 
 # ===== USER CONFIGURATION =====
-num_channels = 2   # <-- SET NUMBER OF CHANNELS HERE (1–4)
+num_channels = 1   # <-- SET NUMBER OF CHANNELS HERE (1–4)
 
 # Default settings per channel
 # Define amplitude (mA), frequency (Hz), and pulse width (µs) for each channel
 channel_defaults = {
-    1: {"amp": 15, "freq": 35, "pw": 120},
-    2: {"amp": 15, "freq": 35, "pw": 120},
+    1: {"amp": 40, "freq": 35, "pw": 145},
+    2: {"amp": 40, "freq": 35, "pw": 80},
     3: {"amp": 8, "freq": 40, "pw": 150},
     4: {"amp": 6, "freq": 30, "pw": 200},
     #    Amps = mA, Freq = Hz, PW = µs
@@ -40,7 +40,7 @@ channel_defaults = {ch: channel_defaults[ch] for ch in range(1, num_channels+1)}
 # Step sizes for key changes
 delta_amp = 1 # mA
 delta_freq = 5 # Hz
-delta_pw = 10 # µs
+delta_pw = 5 # µs
 # ==============================
 
 
