@@ -27,7 +27,7 @@ num_channels = 1   # <-- SET NUMBER OF CHANNELS HERE (1–4)
 # Default settings per channel
 # Define amplitude (mA), frequency (Hz), and pulse width (µs) for each channel
 channel_defaults = {
-    1: {"amp": 40, "freq": 35, "pw": 145},
+    1: {"amp": 30, "freq": 35, "pw": 120},
     2: {"amp": 40, "freq": 35, "pw": 80},
     3: {"amp": 8, "freq": 40, "pw": 150},
     4: {"amp": 6, "freq": 30, "pw": 200},
@@ -158,7 +158,7 @@ async def main():
     while not stop_loop:
         configs = build_stim_config()  # Get updated config
         await mid_level.update(configs)  # Apply to device
-        await asyncio.sleep(1)  # Wait a bit
+        await asyncio.sleep(.1)  # Wait a bit
         #await mid_level.get_current_data()  # Keep connection alive
 
     print("Stopping stimulation...")

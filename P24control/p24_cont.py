@@ -37,7 +37,7 @@ num_channels = 1   # <-- SET NUMBER OF CHANNELS HERE (1–4)
 
 # Default settings per channel
 channel_defaults = {
-    1: {"amp": 40, "freq": 35, "pw": 135},
+    1: {"amp": 20, "freq": 35, "pw": 105},
     2: {"amp": 40, "freq": 35, "pw": 145},
     3: {"amp": 8, "freq": 40, "pw": 150},
     4: {"amp": 6, "freq": 30, "pw": 200},
@@ -162,7 +162,7 @@ async def main():
             else:
                 stim_was_active = False
             
-            await asyncio.sleep(1.0)
+            await asyncio.sleep(.10)
         except Exception as e:
             print(f"Error in main loop: {e}")
             await asyncio.sleep(1.0)
